@@ -1,16 +1,36 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import requests as req
+import os
+import json
+from dotenv import load_dotenv
+from os.path import join, dirname
+from json import dumps
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)                                # load_dotenv() reads variables from a .env file
+api_key = os.getenv('USDA_API_KEY')                     # os.getenv gets variable specified + returns none if dont exist
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+url = ("https://api.nal.usda.gov/fdc/v1/foods/search")    # Built URL
+food = req.get(url, params={"api_key": api_key, "query": "Banana"})
+
+foods_list = food.json()["foods"]
+#print(json.dumps(foods_list[0], indent=4))
+
+nutrient_list = foods_list[0]["foodNutrients"]
+macros = {}
+for nutrient in nutrient_list:
+    if nutrient["nutrientId"] == 1004:
+        macros["fat"] = nutrient["value"]
+
+    if nutrient["nutrientId"] == 1008:
+        macros["energy"] = nutrient["value"]
+
+    if nutrient["nutrientId"] == 1003:
+        macros["protein"] = nutrient["value"]
+
+    if nutrient["nutrientId"] == 1005:
+        macros["carbs"] = nutrient["value"]
+
+
+print(macros)
+#print(json.dumps(nutrient_list[0], indent=4))

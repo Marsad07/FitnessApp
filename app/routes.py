@@ -1,6 +1,6 @@
 from .models.logged_entry_model import LoggedEntry
 from app import db
-from flask import Blueprint
+from flask import Blueprint, request, render_template
 from services.food_service import search_food
 
 
@@ -9,18 +9,24 @@ bp1 = Blueprint('search', __name__, url_prefix='/routes')
 @bp1.route('/search', methods=['GET'])
 def search_food_results():
     # Call the USDA API service to get nutrition data for a food
-    # (hardcoded to "apple" for now, until  real search form exists)
-    result = search_food("apple")
+    # Form values
+    food_name = request.args.get('food_name')
+    if food_name is None:
+        return render_template('online/foods/search.html')
+    meal_category = request.args.get('meal_category')
+    food_weight = request.args.get('food_weight')
+    food_weight = float(food_weight)
 
-    new_entry = LoggedEntry(               # Build a new LoggedEntry object, mapping each database column
-    # to its correct source: API data, or a placeholder until a real form exists
-        food_name=result["description"],   # from the API's dict
-        food_weight=100.50,                # placeholder - no form yet
-        calories=result["energy"],         # from the API's dict
-        protein=result["protein"],
-        carbs=result["carbs"],
-        fats=result["fat"],
-        meal_category="breakfast",         # placeholder - no form yet
+
+    result = search_food(food_name)        # Used to be hardcoded, now contains real variable
+    new_entry = LoggedEntry(               # Build a new LoggedEntry object, mapping each database column,
+        food_name=result.get("description", "unknown food"),
+        food_weight=food_weight,
+        calories=result.get("energy", 0),
+        protein=result.get("protein",0),
+        carbs=result.get("carbs",0),
+        fats=result.get("fat", 0),
+        meal_category=meal_category,
     )
 
     # Stage the new entry, then actually save it to the database

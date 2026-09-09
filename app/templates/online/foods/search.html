@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Food Search</title>
+</head>
+<body>
+    <h1>Food Search</h1>
+    <form method="get" action="/routes/search">
+        <label for="food_name">Food Name</label>
+        <input type="text" id="food_name" name="food_name"><br><br>
+
+        <label for="meal_category">Meal category</label>
+        <select name="meal_category" id="meal_category">
+           <option value="breakfast">Breakfast</option>
+           <option value="lunch">Lunch</option>
+           <option value="dinner">Dinner</option>
+           <option value="snack">Snacks</option>
+        </select><br><br>
+
+        <label for="food_weight">Food Weight</label>
+        <input type="number" id="food_weight" name="food_weight"><br><br>
+
+        <button type="submit" id="submit_btn">Search</button>
+
+    </form>
+</body>
+</html>

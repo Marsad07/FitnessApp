@@ -35,3 +35,14 @@ def search_food_results():
 
     success = "Macros saved into db"
     return success
+
+@bp1.route('/diary', methods=['GET'])
+def view_diary():
+    new_entry = LoggedEntry.query.all()
+    diary_data = []
+
+    for entry in new_entry:
+        diary_data.append({"food_name": entry.food_name, "food_weight": entry.food_weight, "calories": entry.calories,
+                           "protein": entry.protein, "carbs": entry.carbs, "fats": entry.fats,
+                           "meal_category": entry.meal_category})
+    return diary_data

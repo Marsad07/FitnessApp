@@ -1,3 +1,4 @@
+from datetime import datetime
 from app import db
 
 class LoggedEntry(db.Model):
@@ -11,4 +12,4 @@ class LoggedEntry(db.Model):
     carbs = db.Column(db.DECIMAL(6,2))
     fats = db.Column(db.DECIMAL(6,2))
     meal_category = db.Column(db.String(255))
-    logged_at = db.Column(db.DateTime)
+    logged_at = db.Column(db.DateTime, default=datetime.now)

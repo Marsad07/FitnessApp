@@ -1,5 +1,4 @@
 from app import db
-from sqlalchemy.dialects.mysql import MEDIUMTEXT
 
 class FoodCache(db.Model):
     __tablename__ = 'food_cache'

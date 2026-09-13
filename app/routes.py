@@ -1,7 +1,7 @@
 from .models.logged_entry_model import LoggedEntry
 from app import db
 from flask import Blueprint, request, render_template
-from services.food_service import search_food
+from services.food_service import search_food, check_foodcache
 from datetime import date, datetime, timedelta
 
 bp1 = Blueprint('search', __name__, url_prefix='/routes')
@@ -18,7 +18,7 @@ def search_food_results():
     food_weight = float(food_weight)
 
 
-    result = search_food(food_name)        # Used to be hardcoded, now contains real variable
+    result = check_foodcache(food_name)        # Used to be hardcoded, now contains real variable
     new_entry = LoggedEntry(               # Build a new LoggedEntry object, mapping each database column,
         food_name=result.get("description", "unknown food"),
         food_weight=food_weight,

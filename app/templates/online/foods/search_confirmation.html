@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Confirmation</title>
+</head>
+<body>
+    <div>
+        <h1 style="text-align: center">Food Logged Successfully</h1><br><br>
+        <h2 style="text-align: center">Here are the macros for {{ new_entry.food_name }}</h2>
+        <p style="text-align: center">Calories: {{ new_entry.calories }}</p>
+        <p style="text-align: center">Protein: {{ new_entry.protein }}</p>
+        <p style="text-align: center">Carbs: {{ new_entry.carbs }}</p>
+        <p style="text-align: center">Fats: {{ new_entry.fats }}</p>
+    </div><br>
+    <button>
+        <a href="/routes/diary_view">View Diary</a>
+    </button>
+</body>
+</html>

@@ -33,8 +33,7 @@ def search_food_results():
     db.session.add(new_entry)
     db.session.commit()
 
-    success = "Macros saved into db"
-    return success
+    return render_template('online/foods/search_confirmation.html', new_entry=new_entry)
 
 @bp1.route('/diary', methods=['GET'])
 def view_diary():

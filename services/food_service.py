@@ -64,3 +64,15 @@ def search_food(query):
     macros["description"] = food_desc
     return macros
 
+def get_food_options(query):
+    api_key = os.getenv('USDA_API_KEY')
+    food = req.get(url, params={"api_key": api_key, "query": query})
+    foods_list = food.json()["foods"]  # Every food USDA returned for this search
+
+    foods = []  # Holds a small, clean version of each food (just name + id)
+    for item in foods_list:
+        food_desc = item["description"]
+        fdcId = item["fdcId"]
+        foods.append({"fdcId": fdcId, "description": food_desc})
+    return foods  # A short list which results page can display
+

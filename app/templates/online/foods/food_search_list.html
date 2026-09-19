@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Food Search List</title>
+</head>
+<body>
+    <h1>Food Search List</h1>
+    <div>
+           {% for item in foods %}
+            <p>
+                <a href="/routes/food_chosen?fdcId={{ item.fdcId }}">{{ item.description }}</a>
+            </p>
+        {% endfor %}
+    </div>
+</body>
+</html>

@@ -8,7 +8,4 @@ load_dotenv(dotenv_path)                                # load_dotenv() reads va
 app = create_app()
 
 if __name__ == '__main__':
-    fdcId = 2038064
-    result = fetch_food_details(fdcId)
-    print(result)
-    #app.run(debug=True)
+    app.run(debug=True)

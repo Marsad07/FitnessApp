@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -16,5 +16,9 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
     db.init_app(app)
+
+    @app.route('/')
+    def homepage():
+        return render_template('/online/homepage/homepage.html')
 
     return app

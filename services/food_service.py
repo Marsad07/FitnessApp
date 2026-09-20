@@ -76,3 +76,35 @@ def get_food_options(query):
         foods.append({"fdcId": fdcId, "description": food_desc})
     return foods  # A short list which results page can display
 
+def fetch_food_details(fdc_id):
+    # 1) Builds the URL for this one specific food (id goes in the path, not params)
+    api_key = os.getenv('USDA_API_KEY')
+    detail_url = f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}"
+    food = req.get(detail_url,  params={"api_key": api_key,})
+
+    # 2) Get the food's name and its full nutrient list directly (no [0] needed here)
+    food_desc = food.json()["description"]
+    nutrient_list = food.json()["foodNutrients"]
+    print(nutrient_list[:3])
+    macros = {}
+
+    # 3) Loops through nutrients, safely checks each one's id (some entries
+    # don't have the expected shape, so .get() is implemented prevents crashing)
+    for nutrient in nutrient_list:
+        if nutrient.get("nutrient", {}).get("id") == 1004:
+            macros["fat"] = nutrient.get("amount", 0)
+
+        if nutrient.get("nutrient", {}).get("id") == 1008:
+            macros["energy"] = nutrient.get("amount", 0)
+
+        if nutrient.get("nutrient", {}).get("id") == 1003:
+            macros["protein"] = nutrient.get("amount", 0)
+
+        if nutrient.get("nutrient", {}).get("id") == 1005:
+            macros["carbs"] = nutrient.get("amount", 0)
+
+    # 4) Combines name + macros into one result and returns it
+    macros["description"] = food_desc
+    return macros
+
+

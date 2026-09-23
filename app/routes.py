@@ -1,7 +1,7 @@
 from .models.logged_entry_model import LoggedEntry
 from app import db
-from flask import Blueprint, request, render_template
-from services.food_service import search_food, check_foodcache, get_food_options
+from flask import Blueprint, request, render_template, session
+from services.food_service import search_food, check_foodcache, get_food_options, fetch_food_details
 from datetime import date, datetime, timedelta
 
 bp1 = Blueprint('search', __name__, url_prefix='/routes')
@@ -95,6 +95,35 @@ def full_diary_view():
                            total_protein=total_protein,
                            total_carbs=total_carbs,
                            total_fats=total_fats)
+
+@bp1.route('/food_chosen', methods=['GET'])
+def food_chosen():
+    fdc_Id = request.args.get('fdcId')
+    meal_category = request.args.get('meal_category')
+
+    if meal_category is None:
+        return render_template('/online/foods/food_details_form.html', fdc_id=fdc_Id)
+    else:
+        food_weight = request.args.get('food_weight')
+        details = fetch_food_details(fdc_Id)
+        new_entry = LoggedEntry(
+            food_name = details.get('description', "Unknown Food"),
+            calories = details.get('energy', 0),
+            protein = details.get('protein', 0),
+            carbs = details.get('carbs', 0),
+            fats = details.get('fat', 0),
+
+            meal_category = meal_category,
+            food_weight = food_weight,
+        )
+
+        db.session.add(new_entry)
+        db.session.commit()
+
+    return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
+
+
+
 
 
 

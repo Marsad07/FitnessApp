@@ -98,14 +98,23 @@ def full_diary_view():
 
 @bp1.route('/food_chosen', methods=['GET'])
 def food_chosen():
+    # Gets the food's unique ID (always present, from the results list link)
     fdc_Id = request.args.get('fdcId')
+    # meal_category only exists once the small details form has been submitted
     meal_category = request.args.get('meal_category')
 
+    # Moment 1: just clicked a result, meal_category/food_weight not chosen yet
     if meal_category is None:
         return render_template('/online/foods/food_details_form.html', fdc_id=fdc_Id)
     else:
+        # Moment 2: the details form was submitted, everything needed is here now
         food_weight = request.args.get('food_weight')
+
+        # Fetches full, real details for this specific food
         details = fetch_food_details(fdc_Id)
+
+        # Builds the actual entry to save - macro fields from the API data
+        # (safely, with .get()), meal_category/food_weight from the form
         new_entry = LoggedEntry(
             food_name = details.get('description', "Unknown Food"),
             calories = details.get('energy', 0),
@@ -117,13 +126,9 @@ def food_chosen():
             food_weight = food_weight,
         )
 
+        # Saves it
         db.session.add(new_entry)
         db.session.commit()
 
+    # Shows the same confirmation page used by old flow
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
-
-
-
-
-
-

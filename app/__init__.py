@@ -13,8 +13,10 @@ def create_app():
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
     db_name = os.getenv('DB_NAME')
+    secret_key = os.getenv('SECRET_KEY')
 
     app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
+    app.config['SECRET_KEY'] = secret_key
     db.init_app(app)
 
     @app.route('/')

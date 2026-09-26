@@ -1,6 +1,7 @@
+from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
 from app import db
-from flask import Blueprint, request, render_template, session
+from flask import Blueprint, request, render_template, session, flash, url_for
 from services.food_service import search_food, check_foodcache, get_food_options, fetch_food_details
 from datetime import date, datetime, timedelta
 
@@ -130,5 +131,27 @@ def food_chosen():
         db.session.add(new_entry)
         db.session.commit()
 
+
     # Shows the same confirmation page used by old flow
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
+
+@bp1.route('/delete_entry', methods=['GET'])
+def delete_entry():
+    # Gets specific entry id from the url
+    entry_id = request.args.get('id')
+
+    # Looks up that specific entry, returns none if it don't exist
+    result = LoggedEntry.query.filter(LoggedEntry.id == entry_id).first()
+
+    # If there's nothing to delete, tells user via flash message and sends them back
+    if result is None:
+        flash('This food does not exist')
+        return redirect(url_for('search.full_diary_view'))
+    # This actually deletes it and makes it permanent
+    else:
+        db.session.delete(result)
+        db.session.commit()
+        flash('This food has now been deleted')
+        return redirect(url_for('search.full_diary_view'))
+
+

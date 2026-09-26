@@ -5,26 +5,31 @@
     <title>Diary View</title>
 </head>
 <body>
-    <div>
-        <h1>Today's Diary:</h1>
-        <p>Total Calories: {{ total_calories }}</p>
-        <p>Total Protein: {{ total_protein }}</p>
-        <p>Total Carbohydrates: {{ total_carbs }}</p>
-        <p>Total Fats: {{ total_fats }}</p>
-    </div>
-    <br><br>
-    <div>
-        <h1>Full Diary:</h1>
-        {% for entry in todays_entries %}
-            <p>Food Name: {{ entry.food_name }}</p>
-            <p>Food Weight: {{ entry.food_weight }}</p>
-            <p>Meal Category: {{ entry.meal_category }}</p>
-            <p>Calories: {{ entry.calories }}</p>
-            <p>Protein: {{ entry.protein }}</p>
-            <p>Carbohydrates: {{ entry.carbs }}</p>
-            <p>Fats: {{ entry.fats }}</p>
-        <br><br>
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
         {% endfor %}
-    </div>
+        <div>
+            <h1>Today's Diary:</h1>
+            <p>Total Calories: {{ total_calories }}</p>
+            <p>Total Protein: {{ total_protein }}</p>
+            <p>Total Carbohydrates: {{ total_carbs }}</p>
+            <p>Total Fats: {{ total_fats }}</p>
+        </div>
+        <br><br>
+        <div>
+            <h1>Full Diary:</h1>
+            {% for entry in todays_entries %}
+                <p>Food Name: {{ entry.food_name }}</p>
+                <p>Food Weight: {{ entry.food_weight }}</p>
+                <p>Meal Category: {{ entry.meal_category }}</p>
+                <p>Calories: {{ entry.calories }}</p>
+                <p>Protein: {{ entry.protein }}</p>
+                <p>Carbohydrates: {{ entry.carbs }}</p>
+                <p>Fats: {{ entry.fats }}</p>
+            <br><br>
+            {% endfor %}
+        </div>
+    {% endwith %}
 </body>
 </html>

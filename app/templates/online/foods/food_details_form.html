@@ -7,8 +7,14 @@
 <body>
     <h1 style="text-alignment=center"></h1><br>
     <div>
-        <form method="get" action="/routes/food_chosen">
-            <input type="hidden" name="fdcId" value="{{ fdc_id }}">
+        <!-- If editing an existing entry, submit to edit_entry - otherwise submit to food_chosen
+        (logging a brand new food) -->
+        <form method="get" action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
+            {% if entry_id %}
+                <input type="hidden" name="entry_id" value="{{ entry_id }}">
+            {% else %}
+                <input type="hidden" name="fdcId" value="{{ fdc_id }}">
+            {% endif %}
             <label for="meal_category">Meal Category</label><br>
             <select name="meal_category" id="meal_category">
                 <option value="breakfast">Breakfast</option>

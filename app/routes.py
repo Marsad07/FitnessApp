@@ -1,3 +1,4 @@
+from sqlalchemy import result_tuple
 from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
 from app import db
@@ -152,6 +153,31 @@ def delete_entry():
         db.session.delete(result)
         db.session.commit()
         flash('This food has now been deleted')
+        return redirect(url_for('search.full_diary_view'))
+
+@bp1.route('/edit_entry', methods=['GET'])
+def edit_entry():
+    # Gets entry id from the url (same way delete_entry function does)
+    entry_id = request.args.get('id')
+
+    food_weight = request.args.get('food_weight')
+
+    # Looks up that specific entry, same way done in delete_entry function
+    result = LoggedEntry.query.filter(LoggedEntry.id == entry_id).first()
+
+    if food_weight is None:
+        return render_template("/online/foods/food_details_form.html", entry_id=entry_id,
+                               food_name=result.food_name, food_weight=result.food_weight,
+                               meal_category=result.meal_category)
+
+    else:
+        meal_category = request.args.get('meal_category')
+
+        result.food_weight = float(food_weight)
+        result.meal_category = meal_category
+
+        db.session.commit()
+        flash('This food has now been edited')
         return redirect(url_for('search.full_diary_view'))
 
 

@@ -27,6 +27,10 @@
                 <p>Protein: {{ entry.protein }}</p>
                 <p>Carbohydrates: {{ entry.carbs }}</p>
                 <p>Fats: {{ entry.fats }}</p>
+
+                <a href="/routes/delete_entry?id={{ entry.entry_id }}">Delete</a>
+                <a href="/routes/edit_entry?id={{ entry.entry_id }}">Edit</a>
+
             <br><br>
             {% endfor %}
         </div>

@@ -82,7 +82,7 @@ def full_diary_view():
     # One loop doing two jobs at once: built the individual entry list,
     # And added each entry's values onto the running totals
     for entry in today_diary:
-        todays_entries.append({"food_name": entry.food_name, "food_weight": entry.food_weight,
+        todays_entries.append({"entry_id": entry.id, "food_name": entry.food_name, "food_weight": entry.food_weight,
                                "calories": entry.calories, "protein": entry.protein,
                                "carbs": entry.carbs, "fats": entry.fats,
                                "meal_category": entry.meal_category})

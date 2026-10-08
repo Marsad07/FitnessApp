@@ -5,27 +5,28 @@
     <title>Food Details Form</title>
 </head>
 <body>
-    <h1 style="text-alignment=center"></h1><br>
     <div>
         <!-- If editing an existing entry, submit to edit_entry - otherwise submit to food_chosen
         (logging a brand new food) -->
         <form method="get" action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
             {% if entry_id %}
+                <h1 style="text-align: center"> Edit Entry</h1>
                 <input type="hidden" name="entry_id" value="{{ entry_id }}">
             {% else %}
+                <h1 style="text-align: center">Log Food</h1><br>
                 <input type="hidden" name="fdcId" value="{{ fdc_id }}">
             {% endif %}
             <label for="meal_category">Meal Category</label><br>
             <select name="meal_category" id="meal_category">
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
+                <option value="breakfast" {% if meal_category == "breakfast" %}selected{% endif %}>Breakfast</option>
+                <option value="lunch" {% if meal_category == "lunch" %}selected{% endif %}>Lunch</option>
+                <option value="dinner" {% if meal_category == "dinner" %}selected{% endif %}>Dinner</option>
+                <option value="snack" {% if meal_category == "snack" %}selected{% endif %}>Snack</option>
             </select><br>
 
             <h3>Food Weight</h3><br>
             <label for="food_weight"></label>
-            <input type="number" id="food_weight" name="food_weight">
+            <input type="number" id="food_weight" name="food_weight" value="{{ food_weight }}">
             <button type="submit" id="submit_btn">Submit</button>
         </form>
     </div>

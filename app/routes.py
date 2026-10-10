@@ -112,17 +112,22 @@ def food_chosen():
         # Moment 2: the details form was submitted, everything needed is here now
         food_weight = request.args.get('food_weight')
 
+        # Converts the weight from text  into a decimal number so it can be used for equation
+        food_weight = float(food_weight)
+
         # Fetches full, real details for this specific food
         details = fetch_food_details(fdc_Id)
 
-        # Builds the actual entry to save - macro fields from the API data
-        # (safely, with .get()), meal_category/food_weight from the form
+        # Builds the actual entry to save - the macro fields are scaled by the weight entered,
+        # Since USDA gives values per 100g: (value from the API * weight) / 100.
+        # Each one uses .get() with a fallback of 0 so missing USDA data doesn't crash it.
+        # meal_category/food_weight come straight from the form
         new_entry = LoggedEntry(
             food_name = details.get('description', "Unknown Food"),
-            calories = details.get('energy', 0),
-            protein = details.get('protein', 0),
-            carbs = details.get('carbs', 0),
-            fats = details.get('fat', 0),
+            calories = food_weight * details.get('energy', 0) / 100,
+            protein = food_weight * details.get('protein', 0) / 100,
+            carbs = food_weight * details.get('carbs', 0) / 100,
+            fats = food_weight * details.get('fat', 0) / 100,
 
             meal_category = meal_category,
             food_weight = food_weight,
@@ -131,7 +136,6 @@ def food_chosen():
         # Saves it
         db.session.add(new_entry)
         db.session.commit()
-
 
     # Shows the same confirmation page used by old flow
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
@@ -179,5 +183,3 @@ def edit_entry():
         db.session.commit()
         flash('This food has now been edited')
         return redirect(url_for('search.full_diary_view'))
-
-

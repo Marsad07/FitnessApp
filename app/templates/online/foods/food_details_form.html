@@ -11,7 +11,7 @@
         <form method="get" action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
             {% if entry_id %}
                 <h1 style="text-align: center"> Edit Entry</h1>
-                <input type="hidden" name="entry_id" value="{{ entry_id }}">
+                <input type="hidden" name="id" value="{{ entry_id }}">
             {% else %}
                 <h1 style="text-align: center">Log Food</h1><br>
                 <input type="hidden" name="fdcId" value="{{ fdc_id }}">

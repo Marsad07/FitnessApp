@@ -82,7 +82,7 @@ def fetch_food_details(fdc_id):
     detail_url = f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}"
     food = req.get(detail_url,  params={"api_key": api_key,})
 
-    # This vhecks if USDA actually found this food (200 = found, anything else
+    # This checks if USDA actually found this food (200 = found, anything else
     # like 404 = not found or USDA had a problem), if not, sends back None
     # so the route can tell the user instead of crashing
     if food.status_code != 200:

@@ -24,9 +24,19 @@
                 <option value="snack" {% if meal_category == "snack" %}selected{% endif %}>Snack</option>
             </select><br>
 
+            <!-- Shows  error message sent back from the route (e.g. invalid weight) -->
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
             <h3>Food Weight</h3><br>
             <label for="food_weight"></label>
-            <input type="number" id="food_weight" name="food_weight" value="{{ food_weight }}">
+            <!-- step="any" allows decimals to be entered like 150.5 -->
+            <!-- min + required are used to stop input being empty / 0 / negative -->
+            <input type="number" id="food_weight" name="food_weight" value="{{ food_weight }}"
+            step="any" min="0.1" required>
             <button type="submit" id="submit_btn">Submit</button>
         </form>
     </div>

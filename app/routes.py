@@ -112,8 +112,21 @@ def food_chosen():
         # Moment 2: the details form was submitted, everything needed is here now
         food_weight = request.args.get('food_weight')
 
-        # Converts the weight from text  into a decimal number so it can be used for equation
-        food_weight = float(food_weight)
+        # Tries to turn the weight from text into a decimal number so it can be used for equation
+        try:
+            food_weight = float(food_weight)
+        # If it can't be turned into a number (empty box or letters = ValueError,
+        # weight missing from the url completely = TypeError), tells the user and
+        # sends them back to the same food form
+        except (ValueError, TypeError):
+            flash('Invalid input, Enter a number for food weight!')
+            return redirect(url_for('search.food_chosen', fdcId=fdc_Id))
+
+        # 2) By this point it's definitely a number, so it's safe to compare it to 0
+        # It rejects 0 or negative weights before calling USDA or saving anything
+        if food_weight <= 0:
+            flash('Invalid input, Enter a number bigger than 0 for food weight!')
+            return redirect(url_for('search.food_chosen', fdcId=fdc_Id))
 
         # Fetches full, real details for this specific food
         details = fetch_food_details(fdc_Id)
@@ -137,7 +150,7 @@ def food_chosen():
         db.session.add(new_entry)
         db.session.commit()
 
-    # Shows the same confirmation page used by old flow
+    # Shows the confirmation page
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
 
 @bp1.route('/delete_entry', methods=['GET'])

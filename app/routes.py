@@ -131,6 +131,11 @@ def food_chosen():
         # Fetches full, real details for this specific food
         details = fetch_food_details(fdc_Id)
 
+        if details is None:
+            flash('No details found for this food!')
+            return redirect(url_for('search.search_food_results'))
+
+
         # Builds the actual entry to save - the macro fields are scaled by the weight entered,
         # Since USDA gives values per 100g: (value from the API * weight) / 100.
         # Each one uses .get() with a fallback of 0 so missing USDA data doesn't crash it.

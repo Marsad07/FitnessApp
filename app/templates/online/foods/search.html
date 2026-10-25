@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Food Search</title>
-</head>
-<body>
+{% extends "online/base.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
     <h1>Food Search</h1>
     <form method="get" action="/routes/search">
         <label for="food_name">Food Name</label>
         <input type="text" id="food_name" name="food_name"><br><br>
         <button type="submit" id="submit_btn">Search</button>
     </form>
-</body>
-</html>
+{% endblock %}

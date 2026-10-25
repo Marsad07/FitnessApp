@@ -1,38 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Diary View</title>
-</head>
-<body>
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-        <div>
-            <h1>Today's Diary:</h1>
-            <p>Total Calories: {{ total_calories }}</p>
-            <p>Total Protein: {{ total_protein }}</p>
-            <p>Total Carbohydrates: {{ total_carbs }}</p>
-            <p>Total Fats: {{ total_fats }}</p>
-        </div>
-        <br><br>
-        <div>
-            <h1>Full Diary:</h1>
-            {% for entry in todays_entries %}
-                <p>Food Name: {{ entry.food_name }}</p>
-                <p>Food Weight: {{ entry.food_weight }}</p>
-                <p>Meal Category: {{ entry.meal_category }}</p>
-                <p>Calories: {{ entry.calories }}</p>
-                <p>Protein: {{ entry.protein }}</p>
-                <p>Carbohydrates: {{ entry.carbs }}</p>
-                <p>Fats: {{ entry.fats }}</p>
+{% extends "online/base.html" %}
 
-                <a href="/routes/delete_entry?id={{ entry.entry_id }}">Delete</a>
-                <a href="/routes/edit_entry?id={{ entry.entry_id }}">Edit</a>
+{% block title %}Diary View{% endblock %}
+
+{% block content %}
+    <div>
+        <h1>Today's Diary:</h1>
+        <p>Total Calories: {{ total_calories }}</p>
+        <p>Total Protein: {{ total_protein }}</p>
+        <p>Total Carbohydrates: {{ total_carbs }}</p>
+        <p>Total Fats: {{ total_fats }}</p>
+    </div>
+    <br><br>
+    <div>
+        <h1>Full Diary:</h1>
+        {% for entry in todays_entries %}
+            <p>Food Name: {{ entry.food_name }}</p>
+            <p>Food Weight: {{ entry.food_weight }}</p>
+            <p>Meal Category: {{ entry.meal_category }}</p>
+            <p>Calories: {{ entry.calories }}</p>
+            <p>Protein: {{ entry.protein }}</p>
+            <p>Carbohydrates: {{ entry.carbs }}</p>
+            <p>Fats: {{ entry.fats }}</p>
+
+            <a href="/routes/delete_entry?id={{ entry.entry_id }}">Delete</a>
+            <a href="/routes/edit_entry?id={{ entry.entry_id }}">Edit</a>
             <br><br>
-            {% endfor %}
-        </div>
-    {% endwith %}
-</body>
-</html>
+        {% endfor %}
+    </div>
+{% endblock %}

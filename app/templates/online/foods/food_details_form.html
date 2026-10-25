@@ -1,16 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Food Details Form</title>
-</head>
-<body>
+{% extends "online/base.html" %}
+
+{% block title %}Food Details Form{% endblock %}
+
+{% block content %}
     <div>
         <!-- If editing an existing entry, submit to edit_entry - otherwise submit to food_chosen
         (logging a brand new food) -->
         <form method="get" action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
             {% if entry_id %}
-                <h1 style="text-align: center"> Edit Entry</h1>
+                <h1 style="text-align: center">Edit Entry</h1>
                 <input type="hidden" name="id" value="{{ entry_id }}">
             {% else %}
                 <h1 style="text-align: center">Log Food</h1><br>
@@ -24,15 +22,7 @@
                 <option value="snack" {% if meal_category == "snack" %}selected{% endif %}>Snack</option>
             </select><br>
 
-            <!-- Shows  error message sent back from the route (e.g. invalid weight) -->
-            {% with messages = get_flashed_messages() %}
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            {% endwith %}
-
-            <h3>Food Weight</h3><br>
-            <label for="food_weight"></label>
+            <label for="food_weight">Food Weight(g)</label>
             <!-- step="any" allows decimals to be entered like 150.5 -->
             <!-- min + required are used to stop input being empty / 0 / negative -->
             <input type="number" id="food_weight" name="food_weight" value="{{ food_weight }}"
@@ -40,5 +30,4 @@
             <button type="submit" id="submit_btn">Submit</button>
         </form>
     </div>
-</body>
-</html>
+{% endblock %}

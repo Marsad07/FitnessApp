@@ -1,19 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Homepage</title>
-</head>
-<body>
+{% extends "online/base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
     <h1 style="text-align: center">HOMEPAGE</h1><br>
 
-    <p>Search Food</p>
-    <a href="/routes/search">SearchFood</a>
+    <h2>This is the homepage welcome</h2>
+{% endblock %}
 
-    <p>View Diary</p>
-    <a href="/routes/diary_view">View Diary</a>
-
-    <p>Diary</p>
-    <a href="/routes/diary">Diary</a>
-</body>
-</html>

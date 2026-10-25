@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Food Search List</title>
-</head>
-<body>
+{% extends "online/base.html" %}
+
+{% block title %}Food Search List{% endblock %}
+
+{% block content %}
     <h1>Food Search List</h1>
     <div>
-           {% for item in foods %}
+        {% for item in foods %}
             <p>
                 <a href="/routes/food_chosen?fdcId={{ item.fdcId }}">{{ item.description }}</a>
             </p>
         {% endfor %}
     </div>
-</body>
-</html>
+{% endblock %}

@@ -9,6 +9,8 @@
             <p>
                 <a href="/routes/food_chosen?fdcId={{ item.fdcId }}">{{ item.description }}</a>
             </p>
+        {% else %}
+            <p>No items found, please search for something else</p>
         {% endfor %}
     </div>
 {% endblock %}

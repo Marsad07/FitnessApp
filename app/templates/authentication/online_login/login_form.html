@@ -1,0 +1,16 @@
+{% extends "online/base.html" %}
+
+{% block title %}Login form Form{% endblock %}
+
+{% block content %}
+    <h1 style="text-align: center">Login Form</h1>
+    <form method="post" style="text-align: center" action="{{ url_for('auth.login')}}">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required minlength="8"><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+{% endblock %}

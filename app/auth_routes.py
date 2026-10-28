@@ -1,5 +1,6 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
+from models.user_accounts_model import User
 from .models.user_accounts_model import User
 from flask import Blueprint, request, render_template, session, flash, url_for, redirect
 
@@ -55,10 +56,39 @@ def register():
             password_hash=password_hash,
 
         )
-
         # Adds user, saves it, sends user back to homepage with success message
         db.session.add(new_user)
         db.session.commit()
         flash('Registration Successful')
         return redirect(url_for('homepage'))
 
+# This route is for the login form, GET = shows the login form,
+# POST = checks the email + password, then logs the user in if they match
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template("authentication/online_login/login_form.html")
+    elif request.method == 'POST':
+        # Reads the values from the form using request.form.get
+        email = request.form.get('email').strip()
+        password = request.form.get('password')
+
+        # Looks for an account with this email through .first()
+        # If there's no account, shows the error message
+        user = User.query.filter(User.email == email).first()
+        if user is None:
+            flash('email or password is incorrect')
+            return redirect(url_for('auth.login'))
+
+        # Checks the typed password against the hash saved for this user
+        # check_password_hash re-hashes what was typed using the same salt as the stored hash,
+        # then compares them - gives back True if they match, False if not
+        verify_ps = check_password_hash(user.password_hash, password)
+        if not verify_ps:
+            flash('email or password is incorrect')
+            return redirect(url_for('auth.login'))
+
+        # if everything matched -> saves the user's id in the session so they stay logged in on every page
+        session['user_id'] = user.id
+        flash('Login Successful')
+        return redirect(url_for('homepage'))

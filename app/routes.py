@@ -6,9 +6,9 @@ from flask import Blueprint, request, render_template, session, flash, url_for
 from services.food_service import search_food, check_foodcache, get_food_options, fetch_food_details
 from datetime import date, datetime, timedelta
 
-bp1 = Blueprint('search', __name__, url_prefix='/routes')
+food_bp = Blueprint('search', __name__, url_prefix='/routes')
 
-@bp1.route('/search', methods=['GET'])
+@food_bp.route('/search', methods=['GET'])
 def search_food_results():
     # Call the USDA API service to get nutrition data for a food
     # Form values
@@ -19,7 +19,7 @@ def search_food_results():
     result = get_food_options(food_name)   # Used to be hardcoded, now contains real variable
     return render_template('online/foods/food_search_list.html', foods=result)
 
-@bp1.route('/diary', methods=['GET'])
+@food_bp.route('/diary', methods=['GET'])
 def view_diary():
     # Gets every logged entry from the database, no filtering
     new_entry = LoggedEntry.query.all()
@@ -34,7 +34,7 @@ def view_diary():
                            "meal_category": entry.meal_category})
     return diary_data
 
-@bp1.route('/diary_today', methods=['GET'])
+@food_bp.route('/diary_today', methods=['GET'])
 def diary_today():
     # Build the two boundary points: midnight today, and midnight tomorrow
     today_start = datetime.combine(date.today(), datetime.min.time())
@@ -61,7 +61,7 @@ def diary_today():
     total_macros = {"calories": total_calories, "protein": total_protein, "carbs": total_carbs, "fats": total_fats}
     return total_macros
 
-@bp1.route('/diary_view', methods=['GET'])
+@food_bp.route('/diary_view', methods=['GET'])
 def full_diary_view():
     # Built the two boundary points: midnight today, and midnight tomorrow
     today_start = datetime.combine(date.today(), datetime.min.time())
@@ -98,7 +98,7 @@ def full_diary_view():
                            total_carbs=total_carbs,
                            total_fats=total_fats)
 
-@bp1.route('/food_chosen', methods=['GET'])
+@food_bp.route('/food_chosen', methods=['GET'])
 def food_chosen():
     # Gets the food's unique ID (always present, from the results list link)
     fdc_Id = request.args.get('fdcId')
@@ -158,7 +158,7 @@ def food_chosen():
     # Shows the confirmation page
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
 
-@bp1.route('/delete_entry', methods=['GET'])
+@food_bp.route('/delete_entry', methods=['GET'])
 def delete_entry():
     # Gets specific entry id from the url
     entry_id = request.args.get('id')
@@ -177,7 +177,7 @@ def delete_entry():
         flash('This food has now been deleted')
         return redirect(url_for('search.full_diary_view'))
 
-@bp1.route('/edit_entry', methods=['GET'])
+@food_bp.route('/edit_entry', methods=['GET'])
 def edit_entry():
     # Gets entry id from the url (same way delete_entry function does)
     entry_id = request.args.get('id')

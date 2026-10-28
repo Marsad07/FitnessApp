@@ -6,8 +6,11 @@ db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    from .routes import bp1
-    app.register_blueprint(bp1)
+    from .routes import food_bp
+    from .auth_routes import auth_bp
+
+    app.register_blueprint(food_bp)
+    app.register_blueprint(auth_bp)
 
     db_host = os.getenv('DB_HOST')
     db_user = os.getenv('DB_USER')

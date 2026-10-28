@@ -1,6 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
-from models.user_accounts_model import User
 from .models.user_accounts_model import User
 from flask import Blueprint, request, render_template, session, flash, url_for, redirect
 
@@ -90,5 +89,14 @@ def login():
 
         # if everything matched -> saves the user's id in the session so they stay logged in on every page
         session['user_id'] = user.id
+        print(session)
         flash('Login Successful')
         return redirect(url_for('homepage'))
+
+@auth_bp.route('/logout',methods=['GET'])
+def logout():
+    # This removes user_id from the session through .pop()
+    session.pop('user_id', None)
+    flash('Logged Out')
+    print(session)
+    return redirect(url_for('homepage'))

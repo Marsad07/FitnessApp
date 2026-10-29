@@ -5,6 +5,7 @@ class LoggedEntry(db.Model):
     __tablename__ = 'logged_entries'
     id = db.Column(db.Integer, primary_key=True)
     fdc_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('users_accounts.id', nullable=False))
     food_name = db.Column(db.String(255))
     food_weight = db.Column(db.DECIMAL(6,2))
     calories = db.Column(db.DECIMAL(6,2))

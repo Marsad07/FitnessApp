@@ -100,6 +100,13 @@ def full_diary_view():
 
 @food_bp.route('/food_chosen', methods=['GET'])
 def food_chosen():
+    # Reads users ID from session and redirects user to login page
+    user_id = session.get('user_id')
+    if user_id is None:
+        flash('Please log in to account to access diary')
+        return redirect(url_for('auth.login'))
+
+
     # Gets the food's unique ID (always present, from the results list link)
     fdc_Id = request.args.get('fdcId')
     # meal_category only exists once the small details form has been submitted
@@ -136,11 +143,12 @@ def food_chosen():
             return redirect(url_for('search.search_food_results'))
 
 
-        # Builds the actual entry to save - the macro fields are scaled by the weight entered,
+        # Builds the actual entry to save with user id - the macro fields are scaled by the weight entered,
         # Since USDA gives values per 100g: (value from the API * weight) / 100.
         # Each one uses .get() with a fallback of 0 so missing USDA data doesn't crash it.
         # meal_category/food_weight come straight from the form
         new_entry = LoggedEntry(
+            user_id = user_id,
             food_name = details.get('description', "Unknown Food"),
             calories = food_weight * details.get('energy', 0) / 100,
             protein = food_weight * details.get('protein', 0) / 100,

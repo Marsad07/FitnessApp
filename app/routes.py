@@ -63,13 +63,20 @@ def diary_today():
 
 @food_bp.route('/diary_view', methods=['GET'])
 def full_diary_view():
+    # Reads users ID from session and redirects user to login page
+    user_id = session.get('user_id')
+    if user_id is None:
+        flash('Please log in to account to access diary')
+        return redirect(url_for('auth.login'))
+
     # Built the two boundary points: midnight today, and midnight tomorrow
     today_start = datetime.combine(date.today(), datetime.min.time())
     tomorrow_start = today_start + timedelta(days=1)
 
-    # Only gets entries logged between those two boundaries (for e.g: today only)
+    # Only gets entries logged between those three boundaries (for e.g: today only)
     today_diary = LoggedEntry.query.filter(LoggedEntry.logged_at >= today_start,
-                                           LoggedEntry.logged_at < tomorrow_start).all()
+                                           LoggedEntry.logged_at < tomorrow_start,
+                                           LoggedEntry.user_id == user_id).all()
 
     # todays_entries holds each individual food logged today, separately
     # the four total_X variables track the running sum across all of them
@@ -82,7 +89,8 @@ def full_diary_view():
     # One loop doing two jobs at once: built the individual entry list,
     # And added each entry's values onto the running totals
     for entry in today_diary:
-        todays_entries.append({"entry_id": entry.id, "food_name": entry.food_name, "food_weight": entry.food_weight,
+        todays_entries.append({"entry_id": entry.id, "food_name": entry.food_name,
+                               "food_weight": entry.food_weight,
                                "calories": entry.calories, "protein": entry.protein,
                                "carbs": entry.carbs, "fats": entry.fats,
                                "meal_category": entry.meal_category})

@@ -12,7 +12,7 @@
         <p style="text-align: center">Fats: {{ new_entry.fats }}g</p>
     </div><br>
     <button>
-        <a href="/routes/diary_view">View Diary</a>
+        <a href="{{ url_for('search.full_nutrition_view') }}">View Nutrition</a>
     </button>
     <button>
         <a href="/routes/search">Log New Food</a>

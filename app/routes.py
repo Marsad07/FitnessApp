@@ -1,4 +1,3 @@
-
 from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
 from app import db
@@ -20,9 +19,9 @@ def search_food_results():
     result = get_food_options(food_name)   # Used to be hardcoded, now contains real variable
     return render_template('online/foods/food_search_list.html', foods=result)
 
-@food_bp.route('/diary_view', methods=['GET'])
+@food_bp.route('/nutrition_view', methods=['GET'])
 @login_required # Decorator to check if users logged in
-def full_diary_view():
+def full_nutrition_view():
     # Reads users ID from session
     user_id = session.get('user_id')
 
@@ -31,7 +30,7 @@ def full_diary_view():
     tomorrow_start = today_start + timedelta(days=1)
 
     # Only gets entries logged between those three boundaries (for e.g: today only)
-    today_diary = LoggedEntry.query.filter(LoggedEntry.logged_at >= today_start,
+    today_nutrition = LoggedEntry.query.filter(LoggedEntry.logged_at >= today_start,
                                            LoggedEntry.logged_at < tomorrow_start,
                                            LoggedEntry.user_id == user_id).all()
 
@@ -45,7 +44,7 @@ def full_diary_view():
 
     # One loop doing two jobs at once: built the individual entry list,
     # And added each entry's values onto the running totals
-    for entry in today_diary:
+    for entry in today_nutrition:
         todays_entries.append({"entry_id": entry.id, "food_name": entry.food_name,
                                "food_weight": entry.food_weight,
                                "calories": entry.calories, "protein": entry.protein,
@@ -57,7 +56,7 @@ def full_diary_view():
         total_fats=total_fats + entry.fats
 
     # Sends both the individual entries and the final totals to the template
-    return render_template("online/diary/diary_view.html", todays_entries=todays_entries,
+    return render_template("online/nutrition/nutrition_view.html", todays_entries=todays_entries,
                            total_calories=total_calories,
                            total_protein=total_protein,
                            total_carbs=total_carbs,
@@ -144,13 +143,13 @@ def delete_entry():
     # If there's nothing to delete, tells user via flash message and sends them back
     if result is None:
         flash('This food does not exist')
-        return redirect(url_for('search.full_diary_view'))
+        return redirect(url_for('search.full_nutrition_view'))
     # This actually deletes it and makes it permanent
     else:
         db.session.delete(result)
         db.session.commit()
         flash('This food has now been deleted')
-        return redirect(url_for('search.full_diary_view'))
+        return redirect(url_for('search.full_nutrition_view'))
 
 @food_bp.route('/edit_entry', methods=['GET', 'POST'])
 @login_required # Decorator to check if users logged in
@@ -169,10 +168,10 @@ def edit_entry():
     # (second condition only matches if the entry belongs to that user)
     result = LoggedEntry.query.filter(LoggedEntry.id == entry_id, LoggedEntry.user_id == user_id).first()
 
-    # If the entry doesn't exist, tell the user and go back to the diary
+    # If the entry doesn't exist, tell the user and go back to the nutrition
     if result is None:
         flash('This food does not exist')
-        return redirect(url_for('search.full_diary_view'))
+        return redirect(url_for('search.full_nutrition_view'))
 
     # Moment 1: Edit link was just clicked, where nothing submitted yet,
     # So show the form with the entry's current values pre-filled
@@ -191,12 +190,12 @@ def edit_entry():
         new_food_weight = float(food_weight)
     except (ValueError, TypeError):
         flash('Please enter a number for the food weight!')
-        return redirect(url_for('search.full_diary_view'))
+        return redirect(url_for('search.full_nutrition_view'))
 
     # This rejects 0 or negative weights BEFORE changing anything
     if new_food_weight <= 0:
         flash('You cannot put 0 for food weight, Please enter a number bigger than 0!')
-        return redirect(url_for('search.full_diary_view'))
+        return redirect(url_for('search.full_nutrition_view'))
 
     # This retrieves the old weight (treated as 0 if nothing was saved)
     old_food_weight = float(result.food_weight or 0)
@@ -218,4 +217,4 @@ def edit_entry():
 
     db.session.commit()
     flash(message)
-    return redirect(url_for('search.full_diary_view'))
+    return redirect(url_for('search.full_nutrition_view'))

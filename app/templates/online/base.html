@@ -10,7 +10,7 @@
     <nav>
         <a href="{{ url_for('homepage') }}">Home</a>
         <a href="{{ url_for('search.search_food_results') }}">Search</a>
-        <a href="{{ url_for('search.full_diary_view') }}">Diary</a>
+        <a href="{{ url_for('search.full_nutrition_view') }}">Nutrition</a>
         {% if session.get('user_id')  %}
             <a href="{{ url_for('auth.logout') }}">Logout</a>
         {% else %}

@@ -1,10 +1,10 @@
 {% extends "online/base.html" %}
 
-{% block title %}Diary View{% endblock %}
+{% block title %}Nutrition View{% endblock %}
 
 {% block content %}
     <div>
-        <h1>Today's Diary:</h1>
+        <h1>Today's Nutrition:</h1>
         <p>Total Calories: {{ total_calories }}</p>
         <p>Total Protein: {{ total_protein }}</p>
         <p>Total Carbohydrates: {{ total_carbs }}</p>
@@ -12,7 +12,7 @@
     </div>
     <br><br>
     <div>
-        <h1>Full Diary:</h1>
+        <h1>Full Nutrition:</h1>
         {% for entry in todays_entries %}
             <p>Food Name: {{ entry.food_name }}</p>
             <p>Food Weight: {{ entry.food_weight }}</p>

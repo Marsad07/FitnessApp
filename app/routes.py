@@ -1,4 +1,5 @@
 from sqlalchemy import result_tuple
+from sqlalchemy.sql.functions import user
 from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
 from app import db
@@ -201,6 +202,12 @@ def delete_entry():
 
 @food_bp.route('/edit_entry', methods=['GET'])
 def edit_entry():
+    # Reads users ID from session and redirects user to login page
+    user_id = session.get('user_id')
+    if user_id is None:
+        flash('Please log in to account to access diary')
+        return redirect(url_for('auth.login'))
+
     # Gets entry id from the url (same way delete_entry function does)
     entry_id = request.args.get('id')
 
@@ -208,7 +215,7 @@ def edit_entry():
     food_weight = request.args.get('food_weight')
 
     # This was done the same way in delete_entry function
-    result = LoggedEntry.query.filter(LoggedEntry.id == entry_id).first()
+    result = LoggedEntry.query.filter(LoggedEntry.id == entry_id, LoggedEntry.user_id == user_id).first()
 
     # If the entry doesn't exist, tell the user and go back to the diary
     if result is None:

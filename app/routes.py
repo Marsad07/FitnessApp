@@ -1,5 +1,6 @@
 from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
+from .models.nutrition_model import Nutrition
 from app import db
 from flask import Blueprint, request, render_template, session, flash, url_for
 from services.food_service import search_food, check_foodcache, get_food_options, fetch_food_details
@@ -217,4 +218,66 @@ def edit_entry():
 
     db.session.commit()
     flash(message)
+    return redirect(url_for('search.full_nutrition_view'))
+
+@food_bp.route('/set_goals', methods=['POST'])
+@login_required
+def set_goals():
+    user_id = session.get('user_id')
+    # Gets the 4 goals from form
+    calories_goal = request.form.get('calories_goal')
+    protein_goal = request.form.get('protein_goal')
+    carbs_goal = request.form.get('carbs_goal')
+    fats_goal = request.form.get('fats_goal')
+
+    # Converts each goal from text to a number - if any box is empty, letters or missing,
+    # float() crashes, so it's caught here and the user is told
+    try:
+        calories_goal = float(calories_goal)
+        protein_goal = float(protein_goal)
+        carbs_goal = float(carbs_goal)
+        fats_goal = float(fats_goal)
+    except (ValueError, TypeError):
+        flash('Please enter a number for all goals!')
+        return redirect(url_for('search.full_nutrition_view'))
+
+    # Range checks for goals
+    if not (1 <= calories_goal <= 9999):
+        flash('Your calories goal must be between 1 and 9999')
+        return redirect(url_for('search.full_nutrition_view'))
+
+    # Macros are allowed to be 0 (e.g. someone doing keto might set 0 carbs)
+    if not (0 <= protein_goal <= 1000):
+        flash('Your protein goal must be between 0 and 1000g')
+        return redirect(url_for('search.full_nutrition_view'))
+
+    if not (0 <= carbs_goal <= 1000):
+        flash('Your carbs goal must be between 0 and 1000g')
+        return redirect(url_for('search.full_nutrition_view'))
+
+    if not (0 <= fats_goal <= 500):
+        flash('Your fats goal must be between 0 and 500g')
+        return redirect(url_for('search.full_nutrition_view'))
+
+    # Looks up users goals row, if its None -> create new row with user id + the 4 goals
+    # Otherwise set 4 goal values on existing row
+    user_goals = Nutrition.query.filter(Nutrition.user_id == user_id).first()
+    if user_goals is None:
+        user_goals = Nutrition(
+            user_id=user_id,
+            calories_goal=calories_goal,
+            protein_goal=protein_goal,
+            carbs_goal=carbs_goal,
+            fats_goal=fats_goal
+        )
+        db.session.add(user_goals)
+    else:
+        user_goals.calories_goal = calories_goal
+        user_goals.protein_goal = protein_goal
+        user_goals.carbs_goal = carbs_goal
+        user_goals.fats_goal = fats_goal
+
+    # Saves it and sends the user back to the nutrition page
+    db.session.commit()
+    flash('Your daily goals have been saved')
     return redirect(url_for('search.full_nutrition_view'))

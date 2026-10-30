@@ -132,7 +132,7 @@ def food_chosen():
     # Shows the confirmation page
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
 
-@food_bp.route('/delete_entry', methods=['GET'])
+@food_bp.route('/delete_entry', methods=['POST'])
 def delete_entry():
     # Reads users ID from session and redirects user to login page
     user_id = session.get('user_id')
@@ -140,8 +140,8 @@ def delete_entry():
         flash('Please log in to account to access diary')
         return redirect(url_for('auth.login'))
 
-    # Gets specific entry id from the url
-    entry_id = request.args.get('id')
+    # Gets specific entry id from the form
+    entry_id = request.form.get('id')
 
     # Looks up that specific entry, returns none if it don't exist
     # And second condition only matches if the entry belongs to that user

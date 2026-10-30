@@ -22,7 +22,11 @@
             <p>Carbohydrates: {{ entry.carbs }}</p>
             <p>Fats: {{ entry.fats }}</p>
 
-            <a href="/routes/delete_entry?id={{ entry.entry_id }}">Delete</a>
+            <form method="POST" action="{{ url_for('search.delete_entry') }}">
+                <input type="hidden" name="id" value="{{ entry.entry_id }}">
+                <button type="submit" class="delete-btn">Delete</button>
+            </form>
+
             <a href="/routes/edit_entry?id={{ entry.entry_id }}">Edit</a>
             <br><br>
         {% endfor %}

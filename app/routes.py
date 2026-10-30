@@ -1,11 +1,10 @@
-from sqlalchemy import result_tuple
-from sqlalchemy.sql.functions import user
 from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
 from app import db
 from flask import Blueprint, request, render_template, session, flash, url_for
 from services.food_service import search_food, check_foodcache, get_food_options, fetch_food_details
 from datetime import date, datetime, timedelta
+from app.decorators import login_required
 
 food_bp = Blueprint('search', __name__, url_prefix='/routes')
 
@@ -21,12 +20,10 @@ def search_food_results():
     return render_template('online/foods/food_search_list.html', foods=result)
 
 @food_bp.route('/diary_view', methods=['GET'])
+@login_required # Decorator to check if users logged in
 def full_diary_view():
-    # Reads users ID from session and redirects user to login page
+    # Reads users ID from session
     user_id = session.get('user_id')
-    if user_id is None:
-        flash('Please log in to account to access diary')
-        return redirect(url_for('auth.login'))
 
     # Built the two boundary points: midnight today, and midnight tomorrow
     today_start = datetime.combine(date.today(), datetime.min.time())
@@ -66,12 +63,10 @@ def full_diary_view():
                            total_fats=total_fats)
 
 @food_bp.route('/food_chosen', methods=['GET'])
+@login_required # Decorator to check if users logged in
 def food_chosen():
-    # Reads users ID from session and redirects user to login page
+    # Reads users ID from session
     user_id = session.get('user_id')
-    if user_id is None:
-        flash('Please log in to account to access diary')
-        return redirect(url_for('auth.login'))
 
     # Gets the food's unique ID (always present, from the results list link)
     fdc_Id = request.args.get('fdcId')
@@ -133,12 +128,10 @@ def food_chosen():
     return render_template("/online/foods/search_confirmation.html", new_entry=new_entry)
 
 @food_bp.route('/delete_entry', methods=['POST'])
+@login_required # Decorator to check if users logged in
 def delete_entry():
-    # Reads users ID from session and redirects user to login page
+    # Reads users ID from session
     user_id = session.get('user_id')
-    if user_id is None:
-        flash('Please log in to account to access diary')
-        return redirect(url_for('auth.login'))
 
     # Gets specific entry id from the form
     entry_id = request.form.get('id')
@@ -159,12 +152,10 @@ def delete_entry():
         return redirect(url_for('search.full_diary_view'))
 
 @food_bp.route('/edit_entry', methods=['GET', 'POST'])
+@login_required # Decorator to check if users logged in
 def edit_entry():
-    # Reads users ID from session and redirects user to login page
+    # Reads users ID from session
     user_id = session.get('user_id')
-    if user_id is None:
-        flash('Please log in to account to access diary')
-        return redirect(url_for('auth.login'))
 
     # Gets the entry id from the right place: the hidden input when the form is submitted (POST),
     # or the url when the Edit link was just clicked (GET)

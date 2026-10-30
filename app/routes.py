@@ -158,7 +158,7 @@ def delete_entry():
         flash('This food has now been deleted')
         return redirect(url_for('search.full_diary_view'))
 
-@food_bp.route('/edit_entry', methods=['GET'])
+@food_bp.route('/edit_entry', methods=['GET', 'POST'])
 def edit_entry():
     # Reads users ID from session and redirects user to login page
     user_id = session.get('user_id')
@@ -166,13 +166,15 @@ def edit_entry():
         flash('Please log in to account to access diary')
         return redirect(url_for('auth.login'))
 
-    # Gets entry id from the url (same way delete_entry function does)
-    entry_id = request.args.get('id')
-
-    # This only exists once the edit form has been submitted, so it's None the first time
-    food_weight = request.args.get('food_weight')
+    # Gets the entry id from the right place: the hidden input when the form is submitted (POST),
+    # or the url when the Edit link was just clicked (GET)
+    if request.method == 'POST':
+        entry_id = request.form.get('id')
+    else:
+        entry_id = request.args.get('id')
 
     # This was done the same way in delete_entry function
+    # (second condition only matches if the entry belongs to that user)
     result = LoggedEntry.query.filter(LoggedEntry.id == entry_id, LoggedEntry.user_id == user_id).first()
 
     # If the entry doesn't exist, tell the user and go back to the diary
@@ -182,46 +184,46 @@ def edit_entry():
 
     # Moment 1: Edit link was just clicked, where nothing submitted yet,
     # So show the form with the entry's current values pre-filled
-    if food_weight is None:
+    if request.method == 'GET':
         return render_template("/online/foods/food_details_form.html", entry_id=entry_id,
                                food_name=result.food_name, food_weight=result.food_weight,
                                meal_category=result.meal_category)
 
     # Moment 2: This is where the form was submitted with new values
-    else:
-        meal_category = request.args.get('meal_category')
+    meal_category = request.form.get('meal_category')
+    food_weight = request.form.get('food_weight')
 
-        # Since form values are text, this converts the new weight to a number
-        # (an empty or non-number box would cause a crash to float(), so it's caught here)
-        try:
-            new_food_weight = float(food_weight)
-        except ValueError:
-            flash('Please enter a number for the food weight!')
-            return redirect(url_for('search.full_diary_view'))
-
-        # This rejects 0 or negative weights BEFORE changing anything
-        if new_food_weight <= 0:
-            flash('You cannot put 0 for food weight, Please enter a number bigger than 0!')
-            return redirect(url_for('search.full_diary_view'))
-
-        # This retrieves the old weight (treated as 0 if nothing was saved)
-        old_food_weight = float(result.food_weight or 0)
-
-        # This can only scale if there's an old weight to scale from (since dividing by 0 would crash)
-        if old_food_weight > 0:
-            # Scales calories, protein, carbs and fats from the old weight to the new weight
-            result.calories = float(result.calories or 0) * new_food_weight / old_food_weight
-            result.protein = float(result.protein or 0) * new_food_weight / old_food_weight
-            result.carbs = float(result.carbs or 0) * new_food_weight / old_food_weight
-            result.fats = float(result.fats or 0) * new_food_weight / old_food_weight
-            message = 'This food has now been edited'
-        else:
-            message = 'Weight updated, but the macros could not be rescaled because the old weight was 0'
-
-        # This updates the entry that's already been looked up
-        result.food_weight = new_food_weight
-        result.meal_category = meal_category
-
-        db.session.commit()
-        flash(message)
+    # Since form values are text, this converts the new weight to a number
+    # (an empty or non-number box = ValueError, a missing box = TypeError, both are caught here)
+    try:
+        new_food_weight = float(food_weight)
+    except (ValueError, TypeError):
+        flash('Please enter a number for the food weight!')
         return redirect(url_for('search.full_diary_view'))
+
+    # This rejects 0 or negative weights BEFORE changing anything
+    if new_food_weight <= 0:
+        flash('You cannot put 0 for food weight, Please enter a number bigger than 0!')
+        return redirect(url_for('search.full_diary_view'))
+
+    # This retrieves the old weight (treated as 0 if nothing was saved)
+    old_food_weight = float(result.food_weight or 0)
+
+    # This can only scale if there's an old weight to scale from (since dividing by 0 would crash)
+    if old_food_weight > 0:
+        # Scales calories, protein, carbs and fats from the old weight to the new weight
+        result.calories = float(result.calories or 0) * new_food_weight / old_food_weight
+        result.protein = float(result.protein or 0) * new_food_weight / old_food_weight
+        result.carbs = float(result.carbs or 0) * new_food_weight / old_food_weight
+        result.fats = float(result.fats or 0) * new_food_weight / old_food_weight
+        message = 'This food has now been edited'
+    else:
+        message = 'Weight updated, but the macros could not be rescaled because the old weight was 0'
+
+    # This updates the entry that's already been looked up
+    result.food_weight = new_food_weight
+    result.meal_category = meal_category
+
+    db.session.commit()
+    flash(message)
+    return redirect(url_for('search.full_diary_view'))

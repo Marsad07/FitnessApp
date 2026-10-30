@@ -6,7 +6,8 @@
     <div>
         <!-- If editing an existing entry, submit to edit_entry - otherwise submit to food_chosen
         (logging a brand new food) -->
-        <form method="get" action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
+        <form method="{% if entry_id%}POST{% else %}GET{% endif %}"
+              action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
             {% if entry_id %}
                 <h1 style="text-align: center">Edit Entry</h1>
                 <input type="hidden" name="id" value="{{ entry_id }}">

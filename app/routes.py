@@ -1,3 +1,4 @@
+
 from werkzeug.utils import redirect
 from .models.logged_entry_model import LoggedEntry
 from app import db

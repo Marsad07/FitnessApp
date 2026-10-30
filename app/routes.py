@@ -114,7 +114,6 @@ def food_chosen():
         flash('Please log in to account to access diary')
         return redirect(url_for('auth.login'))
 
-
     # Gets the food's unique ID (always present, from the results list link)
     fdc_Id = request.args.get('fdcId')
     # meal_category only exists once the small details form has been submitted
@@ -176,11 +175,18 @@ def food_chosen():
 
 @food_bp.route('/delete_entry', methods=['GET'])
 def delete_entry():
+    # Reads users ID from session and redirects user to login page
+    user_id = session.get('user_id')
+    if user_id is None:
+        flash('Please log in to account to access diary')
+        return redirect(url_for('auth.login'))
+
     # Gets specific entry id from the url
     entry_id = request.args.get('id')
 
     # Looks up that specific entry, returns none if it don't exist
-    result = LoggedEntry.query.filter(LoggedEntry.id == entry_id).first()
+    # And second condition only matches if the entry belongs to that user
+    result = LoggedEntry.query.filter(LoggedEntry.id == entry_id, LoggedEntry.user_id == user_id ).first()
 
     # If there's nothing to delete, tells user via flash message and sends them back
     if result is None:

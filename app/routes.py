@@ -47,15 +47,23 @@ def full_nutrition_view():
             flash("You can't view future days, showing today instead")
             return redirect(url_for('search.full_nutrition_view'))
 
+    # Boundary points for viewing different days
+    prev_day = current_date - timedelta(days=1)
+    next_day = current_date + timedelta(days=1)
+
+    # Only show the next-day button when not already viewing today
+    can_go_forward = current_date < date.today()
 
     # Boundary points for viewing different days
     day_start = datetime.combine(current_date, datetime.min.time())
     day_end = day_start + timedelta(days=1)
 
     # Only gets entries logged between those two time boundaries (for e.g: today only)
-    day_entries = LoggedEntry.query.filter(LoggedEntry.logged_at >= day_start,
-                                           LoggedEntry.logged_at < day_end,
-                                           LoggedEntry.user_id == user_id).all()
+    day_entries = LoggedEntry.query.filter(
+        LoggedEntry.logged_at >= day_start,
+        LoggedEntry.logged_at < day_end,
+        LoggedEntry.user_id == user_id
+    ).all()
 
     # Gets users goals
     goals = Nutrition.query.filter(Nutrition.user_id == user_id).first()
@@ -68,26 +76,38 @@ def full_nutrition_view():
     total_carbs = 0
     total_fats = 0
 
-    # One loop doing two jobs at once: built the individual entry list,
-    # And added each entry's values onto the running totals
+    # One loop doing two jobs at once: build the individual entry list,
+    # and add each entry's values onto the running totals
     for entry in day_entries:
-        todays_entries.append({"entry_id": entry.id, "food_name": entry.food_name,
-                               "food_weight": entry.food_weight,
-                               "calories": entry.calories, "protein": entry.protein,
-                               "carbs": entry.carbs, "fats": entry.fats,
-                               "meal_category": entry.meal_category})
-        total_calories=total_calories + entry.calories
-        total_protein=total_protein + entry.protein
-        total_carbs=total_carbs + entry.carbs
-        total_fats=total_fats + entry.fats
+        todays_entries.append({
+            "entry_id": entry.id,
+            "food_name": entry.food_name,
+            "food_weight": entry.food_weight,
+            "calories": entry.calories,
+            "protein": entry.protein,
+            "carbs": entry.carbs,
+            "fats": entry.fats,
+            "meal_category": entry.meal_category
+        })
+
+        total_calories += entry.calories
+        total_protein += entry.protein
+        total_carbs += entry.carbs
+        total_fats += entry.fats
 
     # Sends both the individual entries and the final totals to the template
-    return render_template("online/nutrition/nutrition_view.html", todays_entries=todays_entries,
-                           total_calories=total_calories,
-                           total_protein=total_protein,
-                           total_carbs=total_carbs,
-                           total_fats=total_fats,
-                           goals=goals)
+    return render_template(
+        "online/nutrition/nutrition_view.html",
+        todays_entries=todays_entries,
+        total_calories=total_calories,
+        total_protein=total_protein,
+        total_carbs=total_carbs,
+        total_fats=total_fats,
+        goals=goals,
+        prev_day=prev_day,
+        next_day=next_day,
+        can_go_forward=can_go_forward
+    )
 
 @food_bp.route('/food_chosen', methods=['GET'])
 @login_required # Decorator to check if users logged in

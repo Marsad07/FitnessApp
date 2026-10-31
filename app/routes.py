@@ -35,6 +35,9 @@ def full_nutrition_view():
                                            LoggedEntry.logged_at < tomorrow_start,
                                            LoggedEntry.user_id == user_id).all()
 
+    # Gets users goals
+    goals = Nutrition.query.filter(Nutrition.user_id == user_id).first()
+
     # todays_entries holds each individual food logged today, separately
     # the four total_X variables track the running sum across all of them
     todays_entries = []
@@ -61,7 +64,8 @@ def full_nutrition_view():
                            total_calories=total_calories,
                            total_protein=total_protein,
                            total_carbs=total_carbs,
-                           total_fats=total_fats)
+                           total_fats=total_fats,
+                           goals=goals)
 
 @food_bp.route('/food_chosen', methods=['GET'])
 @login_required # Decorator to check if users logged in

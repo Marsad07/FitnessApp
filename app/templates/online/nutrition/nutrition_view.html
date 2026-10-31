@@ -3,41 +3,70 @@
 {% block title %}Nutrition{% endblock %}
 
 {% block content %}
-    <!-- Daily goals form - submits to set_goals, which saves them and sends the user back here
-    (boxes are pre-filled with the current goals if they've been set before) -->
     <div>
         <h1>Daily Goals</h1>
         <form method="post" action="{{ url_for('search.set_goals') }}">
             <label for="calories_goal">Calories (kcal)</label>
             <input type="number" id="calories_goal" name="calories_goal" min="1" max="9999" step="any" required
-                   value="{{ goals.calories_goal if goals else '' }}"><br><br>
+                   value="{{ goals.calories_goal if goals else '' }}">
+            {% if goals %}
+                <p>Today: {{ total_calories|round|int }} / {{ goals.calories_goal|round|int }} kcal</p>
+                <progress value="{{ total_calories }}"
+                          max="{{ goals.calories_goal }}" aria-label="Calories progress"></progress>
+            {% else %}
+                <p>Today: {{ total_calories|round|int }} kcal</p>
+            {% endif %}
+            <br><br>
 
             <label for="protein_goal">Protein (g)</label>
             <input type="number" id="protein_goal" name="protein_goal" min="0" max="1000" step="any" required
-                   value="{{ goals.protein_goal if goals else '' }}"><br><br>
+                   value="{{ goals.protein_goal if goals else '' }}">
+            {% if goals %}
+                <p>Today: {{ total_protein|round|int }} / {{ goals.protein_goal|round|int }} g</p>
+                <progress value="{{ total_protein }}"
+                          max="{{ goals.protein_goal }}" aria-label="Protein progress"></progress>
+            {% else %}
+                <p>Today: {{ total_protein|round|int }} g</p>
+            {% endif %}
+            <br><br>
 
             <label for="carbs_goal">Carbs (g)</label>
             <input type="number" id="carbs_goal" name="carbs_goal" min="0" max="1000" step="any" required
-                   value="{{ goals.carbs_goal if goals else '' }}"><br><br>
+                   value="{{ goals.carbs_goal if goals else '' }}">
+            {% if goals %}
+                <p>Today: {{ total_carbs|round|int }} / {{ goals.carbs_goal|round|int }} g</p>
+                <progress value="{{ total_carbs }}" max="{{ goals.carbs_goal }}" aria-label="Carbs progress"></progress>
+            {% else %}
+                <p>Today: {{ total_carbs|round|int }} g</p>
+            {% endif %}
+            <br><br>
 
             <label for="fats_goal">Fats (g)</label>
             <input type="number" id="fats_goal" name="fats_goal" min="0" max="500" step="any" required
-                   value="{{ goals.fats_goal if goals else '' }}"><br><br>
+                   value="{{ goals.fats_goal if goals else '' }}">
+            {% if goals %}
+                <p>Today: {{ total_fats|round|int }} / {{ goals.fats_goal|round|int }} g</p>
+                <progress value="{{ total_fats }}" max="{{ goals.fats_goal }}" aria-label="Fats progress"></progress>
+            {% else %}
+                <p>Today: {{ total_fats|round|int }} g</p>
+            {% endif %}
+            <br><br>
+
             <button type="submit">Save Goals</button>
         </form>
     </div>
     <br><br>
-    <!-- Every food logged today, each with its own Delete and Edit link -->
+
     <div>
-        <h1>Full Nutrition:</h1>
+        <h1>Logged Today</h1>
         {% for entry in todays_entries %}
             <p>Food Name: {{ entry.food_name }}</p>
-            <p>Food Weight: {{ entry.food_weight }}</p>
-            <p>Meal Category: {{ entry.meal_category }}</p>
-            <p>Calories: {{ entry.calories }}</p>
-            <p>Protein: {{ entry.protein }}</p>
-            <p>Carbohydrates: {{ entry.carbs }}</p>
-            <p>Fats: {{ entry.fats }}</p>
+            <p>Food Weight: {{ entry.food_weight|round(1) }} g</p>
+            <p>Meal Category: {{ entry.meal_category|capitalize }}</p>
+            <p>Calories: {{ entry.calories|round|int }} kcal</p>
+            <p>Protein: {{ entry.protein|round(1) }} g</p>
+            <p>Carbohydrates: {{ entry.carbs|round(1) }} g</p>
+            <p>Fats: {{ entry.fats|round(1) }} g</p>
 
             <form method="POST" action="{{ url_for('search.delete_entry') }}">
                 <input type="hidden" name="id" value="{{ entry.entry_id }}">
@@ -45,6 +74,9 @@
             </form>
             <a href="{{ url_for('search.edit_entry', id=entry.entry_id) }}">Edit</a>
             <br><br>
+        {% else %}
+            <p>Nothing logged yet today.
+                <a href="{{ url_for('search.search_food_results') }}">Search for a food</a> to get started.</p>
         {% endfor %}
     </div>
 {% endblock %}

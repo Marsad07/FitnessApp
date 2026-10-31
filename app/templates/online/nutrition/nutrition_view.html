@@ -4,9 +4,10 @@
 
 {% block content %}
     <div>
+        <h1>{{ day_label }}</h1>
         <a href="{{ url_for('search.full_nutrition_view', date=prev_day.isoformat()) }}">← Previous day</a>
         {% if can_go_forward %}
-            <a href="{{ url_for('search.full_nutrition_view', date=next_day.isoformat()) }}">Next day -></a>
+            <a href="{{ url_for('search.full_nutrition_view', date=next_day.isoformat()) }}">Next day →</a>
         {% endif %}
         <h1>Daily Goals</h1>
         <form method="post" action="{{ url_for('search.set_goals') }}">
@@ -14,11 +15,11 @@
             <input type="number" id="calories_goal" name="calories_goal" min="1" max="9999" step="any" required
                    value="{{ goals.calories_goal if goals else '' }}">
             {% if goals %}
-                <p>Today: {{ total_calories|round|int }} / {{ goals.calories_goal|round|int }} kcal</p>
+                <p>{{ day_label }}: {{ total_calories|round|int }} / {{ goals.calories_goal|round|int }} kcal</p>
                 <progress value="{{ total_calories }}"
                           max="{{ goals.calories_goal }}" aria-label="Calories progress"></progress>
             {% else %}
-                <p>Today: {{ total_calories|round|int }} kcal</p>
+                <p>{{ day_label }}: {{ total_calories|round|int }} kcal</p>
             {% endif %}
             <br><br>
 
@@ -26,11 +27,11 @@
             <input type="number" id="protein_goal" name="protein_goal" min="0" max="1000" step="any" required
                    value="{{ goals.protein_goal if goals else '' }}">
             {% if goals %}
-                <p>Today: {{ total_protein|round|int }} / {{ goals.protein_goal|round|int }} g</p>
+                <p>{{ day_label }}: {{ total_protein|round|int }} / {{ goals.protein_goal|round|int }} g</p>
                 <progress value="{{ total_protein }}"
                           max="{{ goals.protein_goal }}" aria-label="Protein progress"></progress>
             {% else %}
-                <p>Today: {{ total_protein|round|int }} g</p>
+                <p>{{ day_label }}: {{ total_protein|round|int }} g</p>
             {% endif %}
             <br><br>
 
@@ -38,10 +39,10 @@
             <input type="number" id="carbs_goal" name="carbs_goal" min="0" max="1000" step="any" required
                    value="{{ goals.carbs_goal if goals else '' }}">
             {% if goals %}
-                <p>Today: {{ total_carbs|round|int }} / {{ goals.carbs_goal|round|int }} g</p>
+                <p>{{ day_label }}: {{ total_carbs|round|int }} / {{ goals.carbs_goal|round|int }} g</p>
                 <progress value="{{ total_carbs }}" max="{{ goals.carbs_goal }}" aria-label="Carbs progress"></progress>
             {% else %}
-                <p>Today: {{ total_carbs|round|int }} g</p>
+                <p>{{ day_label }}: {{ total_carbs|round|int }} g</p>
             {% endif %}
             <br><br>
 
@@ -49,10 +50,10 @@
             <input type="number" id="fats_goal" name="fats_goal" min="0" max="500" step="any" required
                    value="{{ goals.fats_goal if goals else '' }}">
             {% if goals %}
-                <p>Today: {{ total_fats|round|int }} / {{ goals.fats_goal|round|int }} g</p>
+                <p>{{ day_label }}: {{ total_fats|round|int }} / {{ goals.fats_goal|round|int }} g</p>
                 <progress value="{{ total_fats }}" max="{{ goals.fats_goal }}" aria-label="Fats progress"></progress>
             {% else %}
-                <p>Today: {{ total_fats|round|int }} g</p>
+                <p>{{ day_label }}: {{ total_fats|round|int }} g</p>
             {% endif %}
             <br><br>
 

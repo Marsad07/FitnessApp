@@ -47,9 +47,18 @@ def full_nutrition_view():
             flash("You can't view future days, showing today instead")
             return redirect(url_for('search.full_nutrition_view'))
 
-    # Boundary points for viewing different days
+    # The days either side of the one being viewed, for the Previous/Next day links
     prev_day = current_date - timedelta(days=1)
     next_day = current_date + timedelta(days=1)
+
+    if current_date == date.today():
+        day_label = "Today"
+    elif current_date == date.today() - timedelta(days=1):
+        day_label = "Yesterday"
+    else:
+        # Builds e.g. "Monday 5 October 2026" - .day is used for the number instead of %d,
+        # since %d adds a leading zero ("05") and the no-zero codes differ on Windows and Linux
+        day_label = f"{current_date.strftime('%A')} {current_date.day} {current_date.strftime('%B %Y')}"
 
     # Only show the next-day button when not already viewing today
     can_go_forward = current_date < date.today()
@@ -106,7 +115,8 @@ def full_nutrition_view():
         goals=goals,
         prev_day=prev_day,
         next_day=next_day,
-        can_go_forward=can_go_forward
+        can_go_forward=can_go_forward,
+        day_label=day_label
     )
 
 @food_bp.route('/food_chosen', methods=['GET'])

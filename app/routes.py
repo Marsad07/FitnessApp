@@ -26,20 +26,42 @@ def full_nutrition_view():
     # Reads users ID from session
     user_id = session.get('user_id')
 
-    # Built the two boundary points: midnight today, and midnight tomorrow
-    today_start = datetime.combine(date.today(), datetime.min.time())
-    tomorrow_start = today_start + timedelta(days=1)
+    # Reads the date from the url so the user can look back at other days
+    current_date = request.args.get('date')
 
-    # Only gets entries logged between those three boundaries (for e.g: today only)
-    today_nutrition = LoggedEntry.query.filter(LoggedEntry.logged_at >= today_start,
-                                           LoggedEntry.logged_at < tomorrow_start,
+    # No date in the url / empty -> show today
+    if not current_date:
+        current_date = date.today()
+    else:
+        # The date comes in as text, so this turns it into a real date it can work with,
+        # anything not in YYYY-MM-DD format or a date that doesn't exist
+        # raises a ValueError, so the user is sent back to today
+        try:
+            current_date = datetime.strptime(current_date, '%Y-%m-%d').date()
+        except ValueError:
+            flash("That date isn't valid, showing today instead")
+            return redirect(url_for('search.full_nutrition_view'))
+
+        # Only past days and today can be viewed
+        if current_date > date.today():
+            flash("You can't view future days, showing today instead")
+            return redirect(url_for('search.full_nutrition_view'))
+
+
+    # Boundary points for viewing different days
+    day_start = datetime.combine(current_date, datetime.min.time())
+    day_end = day_start + timedelta(days=1)
+
+    # Only gets entries logged between those two time boundaries (for e.g: today only)
+    day_entries = LoggedEntry.query.filter(LoggedEntry.logged_at >= day_start,
+                                           LoggedEntry.logged_at < day_end,
                                            LoggedEntry.user_id == user_id).all()
 
     # Gets users goals
     goals = Nutrition.query.filter(Nutrition.user_id == user_id).first()
 
-    # todays_entries holds each individual food logged today, separately
-    # the four total_X variables track the running sum across all of them
+    # Today's entries holds each individual food logged today, separately
+    # the four total macro variables track the running sum across all of them
     todays_entries = []
     total_calories = 0
     total_protein = 0
@@ -48,7 +70,7 @@ def full_nutrition_view():
 
     # One loop doing two jobs at once: built the individual entry list,
     # And added each entry's values onto the running totals
-    for entry in today_nutrition:
+    for entry in day_entries:
         todays_entries.append({"entry_id": entry.id, "food_name": entry.food_name,
                                "food_weight": entry.food_weight,
                                "calories": entry.calories, "protein": entry.protein,

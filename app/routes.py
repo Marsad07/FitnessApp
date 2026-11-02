@@ -12,6 +12,75 @@ food_bp = Blueprint('search', __name__, url_prefix='/routes')
 # The only meal categories allowed - used to check the form and to group the nutrition page
 MEALS = ["breakfast", "lunch", "dinner", "snack"]
 
+def get_day_summary(user_id, day):
+    # Boundary points for viewing different days
+    day_start = datetime.combine(day, datetime.min.time())
+    day_end = day_start + timedelta(days=1)
+
+    # Only gets entries logged between those two time boundaries (for e.g: today only)
+    day_entries = LoggedEntry.query.filter(
+        LoggedEntry.logged_at >= day_start,
+        LoggedEntry.logged_at < day_end,
+        LoggedEntry.user_id == user_id
+    ).all()
+
+    # Gets users goals
+    goals = Nutrition.query.filter(Nutrition.user_id == user_id).first()
+
+    # Today's entries holds each individual food logged today, separately
+    # the four total macro variables track the running sum across all of them
+    todays_entries = []
+    total_calories = 0
+    total_protein = 0
+    total_carbs = 0
+    total_fats = 0
+
+    # Dictionaries for meals + meal totals
+    meals = {meal: [] for meal in MEALS}
+    total_meals = {meal: 0 for meal in MEALS}
+
+    # Builds food dictionary once so it can go into two places
+    for entry in day_entries:
+        entry_data = {
+            "entry_id": entry.id,
+            "food_name": entry.food_name,
+            "food_weight": entry.food_weight,
+            "calories": entry.calories,
+            "protein": entry.protein,
+            "carbs": entry.carbs,
+            "fats": entry.fats,
+            "meal_category": entry.meal_category
+        }
+        # Adds it to the full list
+        todays_entries.append(entry_data)
+
+        # Works out which meal it goes under - anything that isn't one of the 4 meals
+        # (such as bad data being saved before the meal check existed) goes under snack instead of crashing
+        meal = entry.meal_category if entry.meal_category in meals else "snack"
+
+        # Adds it to its meal's list
+        meals[meal].append(entry_data)
+
+        # Adds its calories onto its meal's total
+        total_meals[meal] += entry.calories
+
+        total_calories += entry.calories
+        total_protein += entry.protein
+        total_carbs += entry.carbs
+        total_fats += entry.fats
+
+    # Hands everything back to whichever route called it
+    return {
+        "todays_entries": todays_entries,
+        "meals": meals,
+        "total_meals": total_meals,
+        "total_calories": total_calories,
+        "total_protein": total_protein,
+        "total_carbs": total_carbs,
+        "total_fats": total_fats,
+        "goals": goals,
+    }
+
 @food_bp.route('/search', methods=['GET'])
 def search_food_results():
     # Call the USDA API service to get nutrition data for a food
@@ -37,7 +106,6 @@ def full_nutrition_view():
         current_date = date.today()
     else:
         # The date comes in as text, so this turns it into a real date it can work with,
-        # anything not in YYYY-MM-DD format or a date that doesn't exist
         # raises a ValueError, so the user is sent back to today
         try:
             current_date = datetime.strptime(current_date, '%Y-%m-%d').date()
@@ -59,86 +127,29 @@ def full_nutrition_view():
     elif current_date == date.today() - timedelta(days=1):
         day_label = "Yesterday"
     else:
-        # Builds e.g. "Monday 5 October 2026" - .day is used for the number instead of %d,
-        # since %d adds a leading zero ("05") and the no-zero codes differ on Windows and Linux
         day_label = f"{current_date.strftime('%A')} {current_date.day} {current_date.strftime('%B %Y')}"
 
     # Only show the next-day button when not already viewing today
     can_go_forward = current_date < date.today()
 
-    # Boundary points for viewing different days
-    day_start = datetime.combine(current_date, datetime.min.time())
-    day_end = day_start + timedelta(days=1)
+    # Gets that day's entries, meal groups, totals and goals from the shared helper
+    summary = get_day_summary(user_id, current_date)
 
-    # Only gets entries logged between those two time boundaries (for e.g: today only)
-    day_entries = LoggedEntry.query.filter(
-        LoggedEntry.logged_at >= day_start,
-        LoggedEntry.logged_at < day_end,
-        LoggedEntry.user_id == user_id
-    ).all()
-
-    # Gets users goals
-    goals = Nutrition.query.filter(Nutrition.user_id == user_id).first()
-
-    # Today's entries holds each individual food logged today, separately
-    # the four total macro variables track the running sum across all of them
-    todays_entries = []
-    total_calories = 0
-    total_protein = 0
-    total_carbs = 0
-    total_fats = 0
-
-
-    # Dictionaries for meals + meal totals
-    meals = {meal: [] for meal in MEALS}
-    total_meals = {meal: 0 for meal in MEALS}
-
-   # Builds food dictionary once so it can go into two places
-    for entry in day_entries:
-        entry_data = {
-            "entry_id": entry.id,
-            "food_name": entry.food_name,
-            "food_weight": entry.food_weight,
-            "calories": entry.calories,
-            "protein": entry.protein,
-            "carbs": entry.carbs,
-            "fats": entry.fats,
-            "meal_category": entry.meal_category
-        }
-
-        # Adds it to the full list
-        todays_entries.append(entry_data)
-
-        # Works out which meal it goes under - anything that isn't one of the 4 meals
-        # (such as bad data being saved before the meal check existed) goes under snack instead of crashing
-        meal = entry.meal_category if entry.meal_category in meals else "snack"
-
-        # Adds it to its meal's list
-        meals[meal].append(entry_data)
-
-        # Adds its calories onto its meal's total
-        total_meals[meal] += entry.calories
-
-        total_calories += entry.calories
-        total_protein += entry.protein
-        total_carbs += entry.carbs
-        total_fats += entry.fats
-
-    # Sends both the individual entries and the final totals to the template
+    # Sends the day's summary + the date stuff  to the template
     return render_template(
         "online/nutrition/nutrition_view.html",
-        todays_entries=todays_entries,
-        total_calories=total_calories,
-        total_protein=total_protein,
-        total_carbs=total_carbs,
-        total_fats=total_fats,
-        goals=goals,
+        todays_entries=summary["todays_entries"],
+        meals=summary["meals"],
+        total_meals=summary["total_meals"],
+        total_calories=summary["total_calories"],
+        total_protein=summary["total_protein"],
+        total_carbs=summary["total_carbs"],
+        total_fats=summary["total_fats"],
+        goals=summary["goals"],
         prev_day=prev_day,
         next_day=next_day,
         can_go_forward=can_go_forward,
-        day_label=day_label,
-        meals=meals,
-        total_meals=total_meals
+        day_label=day_label
     )
 
 @food_bp.route('/food_chosen', methods=['GET'])
@@ -369,3 +380,5 @@ def set_goals():
     db.session.commit()
     flash('Your daily goals have been saved')
     return redirect(url_for('search.full_nutrition_view'))
+
+

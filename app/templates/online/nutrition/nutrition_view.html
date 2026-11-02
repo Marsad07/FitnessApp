@@ -64,24 +64,26 @@
 
     <div>
         <h1>Logged Today</h1>
-        {% for entry in todays_entries %}
-            <p>Food Name: {{ entry.food_name }}</p>
-            <p>Food Weight: {{ entry.food_weight|round(1) }} g</p>
-            <p>Meal Category: {{ entry.meal_category|capitalize }}</p>
-            <p>Calories: {{ entry.calories|round|int }} kcal</p>
-            <p>Protein: {{ entry.protein|round(1) }} g</p>
-            <p>Carbohydrates: {{ entry.carbs|round(1) }} g</p>
-            <p>Fats: {{ entry.fats|round(1) }} g</p>
+        {% for meal, entries in meals.items() %}
+            <h2>{{ meal|capitalize }} - {{ total_meals[meal]|round|int }} kcal</h2>
+            {% for entry in entries %}
+                <p>Food Name: {{ entry.food_name }}</p>
+                <p>Food Weight: {{ entry.food_weight|round(1) }} g</p>
+                    <p>Calories: {{ entry.calories|round|int }} kcal</p>
+                <p>Protein: {{ entry.protein|round(1) }} g</p>
+                <p>Carbohydrates: {{ entry.carbs|round(1) }} g</p>
+                <p>Fats: {{ entry.fats|round(1) }} g</p>
 
-            <form method="POST" action="{{ url_for('search.delete_entry') }}">
-                <input type="hidden" name="id" value="{{ entry.entry_id }}">
-                <button type="submit" class="delete-btn">Delete</button>
-            </form>
-            <a href="{{ url_for('search.edit_entry', id=entry.entry_id) }}">Edit</a>
-            <br><br>
-        {% else %}
-            <p>Nothing logged yet today.
-                <a href="{{ url_for('search.search_food_results') }}">Search for a food</a> to get started.</p>
+                <form method="POST" action="{{ url_for('search.delete_entry') }}">
+                    <input type="hidden" name="id" value="{{ entry.entry_id }}">
+                    <button type="submit" class="delete-btn">Delete</button>
+                </form>
+
+                <a href="{{ url_for('search.edit_entry', id=entry.entry_id) }}">Edit</a>
+                <br><br>
+            {% else %}
+                <p>Nothing logged for {{ meal }} yet.</p>
+            {% endfor %}
         {% endfor %}
     </div>
 {% endblock %}

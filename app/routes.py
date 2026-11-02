@@ -9,6 +9,9 @@ from app.decorators import login_required
 
 food_bp = Blueprint('search', __name__, url_prefix='/routes')
 
+# The only meal categories allowed - used to check the form and to group the nutrition page
+MEALS = ["breakfast", "lunch", "dinner", "snack"]
+
 @food_bp.route('/search', methods=['GET'])
 def search_food_results():
     # Call the USDA API service to get nutrition data for a food
@@ -85,10 +88,14 @@ def full_nutrition_view():
     total_carbs = 0
     total_fats = 0
 
-    # One loop doing two jobs at once: build the individual entry list,
-    # and add each entry's values onto the running totals
+
+    # Dictionaries for meals + meal totals
+    meals = {meal: [] for meal in MEALS}
+    total_meals = {meal: 0 for meal in MEALS}
+
+   # Builds food dictionary once so it can go into two places
     for entry in day_entries:
-        todays_entries.append({
+        entry_data = {
             "entry_id": entry.id,
             "food_name": entry.food_name,
             "food_weight": entry.food_weight,
@@ -97,7 +104,20 @@ def full_nutrition_view():
             "carbs": entry.carbs,
             "fats": entry.fats,
             "meal_category": entry.meal_category
-        })
+        }
+
+        # Adds it to the full list
+        todays_entries.append(entry_data)
+
+        # Works out which meal it goes under - anything that isn't one of the 4 meals
+        # (such as bad data being saved before the meal check existed) goes under snack instead of crashing
+        meal = entry.meal_category if entry.meal_category in meals else "snack"
+
+        # Adds it to its meal's list
+        meals[meal].append(entry_data)
+
+        # Adds its calories onto its meal's total
+        total_meals[meal] += entry.calories
 
         total_calories += entry.calories
         total_protein += entry.protein
@@ -116,7 +136,9 @@ def full_nutrition_view():
         prev_day=prev_day,
         next_day=next_day,
         can_go_forward=can_go_forward,
-        day_label=day_label
+        day_label=day_label,
+        meals=meals,
+        total_meals=total_meals
     )
 
 @food_bp.route('/food_chosen', methods=['GET'])
@@ -136,6 +158,11 @@ def food_chosen():
     else:
         # Moment 2: the details form was submitted, everything needed is here now
         food_weight = request.args.get('food_weight')
+
+        # Only allows the 4 meals from the dropdown (the form can be edited in DevTools)
+        if meal_category not in MEALS:
+            flash('Please choose breakfast, lunch, dinner or snack')
+            return redirect(url_for('search.food_chosen', fdcId=fdc_Id))
 
         # Tries to turn the weight from text into a decimal number so it can be used for equation
         try:
@@ -240,6 +267,11 @@ def edit_entry():
     # Moment 2: This is where the form was submitted with new values
     meal_category = request.form.get('meal_category')
     food_weight = request.form.get('food_weight')
+
+    # Only allows the 4 meals from the dropdown (the form can be edited in DevTools)
+    if meal_category not in MEALS:
+        flash('Please choose breakfast, lunch, dinner or snack')
+        return redirect(url_for('search.full_nutrition_view'))
 
     # Since form values are text, this converts the new weight to a number
     # (an empty or non-number box = ValueError, a missing box = TypeError, both are caught here)

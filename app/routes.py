@@ -90,6 +90,11 @@ def search_food_results():
         return render_template('online/foods/search.html')
 
     result = get_food_options(food_name)   # Used to be hardcoded, now contains real variable
+    # Check after call to show that app could not reach db
+    if result is None:
+        flash("We couldn't reach the food database, Please try again in a minute")
+        return redirect(url_for('search.search_food_results'))
+
     return render_template('online/foods/food_search_list.html', foods=result)
 
 @food_bp.route('/nutrition_view', methods=['GET'])

@@ -3,7 +3,7 @@ from .models.logged_entry_model import LoggedEntry
 from .models.nutrition_model import Nutrition
 from app import db
 from flask import Blueprint, request, render_template, session, flash, url_for
-from services.food_service import search_food, check_foodcache, get_food_options, fetch_food_details
+from services.food_service import check_foodcache, get_food_options, fetch_food_details
 from datetime import date, datetime, timedelta
 from app.decorators import login_required
 
@@ -89,7 +89,7 @@ def search_food_results():
     if food_name is None:
         return render_template('online/foods/search.html')
 
-    result = get_food_options(food_name)   # Used to be hardcoded, now contains real variable
+    result = check_foodcache(food_name)   # Used to be hardcoded, now contains real variable
     # Check after call to show that app could not reach db
     if result is None:
         flash("We couldn't reach the food database, Please try again in a minute")

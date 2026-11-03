@@ -1,5 +1,5 @@
 from app import create_app
-from services.food_service import search_food, fetch_food_details
+from services.food_service import  fetch_food_details
 from dotenv import load_dotenv
 from os.path import join, dirname
 dotenv_path = join(dirname(__file__), '.env')

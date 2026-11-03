@@ -59,3 +59,4 @@ def create_app():
                                total_carbs=summary["total_carbs"],
                                total_fats=summary["total_fats"],
                                entry_count=len(summary["todays_entries"]))
+    return app

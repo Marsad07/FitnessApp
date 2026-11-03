@@ -22,39 +22,39 @@ def register():
 
     # Checks each box isn't empty, with its own message
     if username == "":
-        flash('Please enter a username')
+        flash('Please enter a username', 'error')
         return redirect(url_for('auth.register'))
 
     if email == "":
-        flash('Please enter an email')
+        flash('Please enter an email', 'error')
         return redirect(url_for('auth.register'))
 
     if password == "" or confirm_password == "":
-        flash('Please enter and confirm your password')
+        flash('Please enter and confirm your password', 'error')
         return redirect(url_for('auth.register'))
 
     # Format checks
     if "@" not in email:
-        flash('Please enter a valid email address')
+        flash('Please enter a valid email address', 'error')
         return redirect(url_for('auth.register'))
 
     if len(password) < 8:
-        flash('Please enter a password that is at least 8 characters')
+        flash('Please enter a password that is at least 8 characters', 'error')
         return redirect(url_for('auth.register'))
 
     if confirm_password != password:
-        flash('The passwords you entered do not match')
+        flash('The passwords you entered do not match', 'error')
         return redirect(url_for('auth.register'))
 
     # Database checks - looks for a user who already has this username/email
     existing_username = User.query.filter(User.username == username).first()
     if existing_username is not None:
-        flash('Username already exists, enter a new username')
+        flash('Username already exists, enter a new username', 'error')
         return redirect(url_for('auth.register'))
 
     existing_email = User.query.filter(User.email == email).first()
     if existing_email is not None:
-        flash('Email already exists, enter a new email address')
+        flash('Email already exists, enter a new email address', 'error')
         return redirect(url_for('auth.register'))
 
     # Hashes the password for security + builds the new user
@@ -68,7 +68,7 @@ def register():
     # Adds user, saves it, sends user back to homepage with success message
     db.session.add(new_user)
     db.session.commit()
-    flash('Registration Successful')
+    flash('Registration Successful', 'success')
     return redirect(url_for('homepage'))
 
 
@@ -84,18 +84,18 @@ def login():
     password = request.form.get('password') or ""
 
     if email == "":
-        flash('Please enter a valid email address')
+        flash('Please enter a valid email address', 'error')
         return redirect(url_for('auth.login'))
 
     if password == "":
-        flash('Please enter a valid password')
+        flash('Please enter a valid password', 'error')
         return redirect(url_for('auth.login'))
 
     # Looks for an account with this email through .first()
     # If there's no account, shows the same message as a wrong password
     user = User.query.filter(User.email == email).first()
     if user is None:
-        flash('email or password is incorrect')
+        flash('email or password is incorrect', 'error')
         return redirect(url_for('auth.login'))
 
     # Checks the typed password against the hash saved for this user
@@ -103,12 +103,12 @@ def login():
     # then compares them - gives back True if they match, False if not
     verify_ps = check_password_hash(user.password_hash, password)
     if not verify_ps:
-        flash('email or password is incorrect')
+        flash('email or password is incorrect', 'error')
         return redirect(url_for('auth.login'))
 
     # If everything matched -> saves the user's id in the session so they stay logged in on every page
     session['user_id'] = user.id
-    flash('Login Successful')
+    flash('Login Successful', 'success')
     return redirect(url_for('homepage'))
 
 
@@ -118,5 +118,5 @@ def logout():
     # This removes user_id from the session through .pop()
     # (None means it won't crash if they were already logged out)
     session.pop('user_id', None)
-    flash('Logged Out')
+    flash('Logged Out', 'info')
     return redirect(url_for('homepage'))

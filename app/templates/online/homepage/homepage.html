@@ -1,9 +1,13 @@
 {% extends "online/base.html" %}
 
-{% block title %}Homepage{% endblock %}
+{% block title %}Griot Fitness{% endblock %}
 
 {% block content %}
-    <h1 style="text-align: center">HOMEPAGE</h1><br>
-    <h2 style="text-align: center;">This is the homepage welcome</h2>
-{% endblock %}
+    <!-- Landing page for logged out users - logged in users see their dashboard instead -->
+    <h1>Griot Fitness</h1>
+    <h2>Fuel your goals, one meal at a time</h2>
+    <p>Search real nutrition data, log what you eat by the gram and see your calories and macros add up against your daily goals.</p>
 
+    <a href="{{ url_for('auth.register') }}">Create an account</a>
+    <a href="{{ url_for('auth.login') }}">Log in</a>
+{% endblock %}

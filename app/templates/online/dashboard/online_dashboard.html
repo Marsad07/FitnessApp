@@ -1,0 +1,62 @@
+{% extends "online/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Hi {{ username }}, {{ date_label }}</h1>
+
+    <!-- This shows the current calories for the day and if the user is on track or not -->
+    {% if goals %}
+        <div class="dashboard-card">
+            <h2>Today's Calories</h2>
+            <p>{{ total_calories|round|int }} / {{ goals.calories_goal|round|int }} kcal</p>
+            <progress value="{{ total_calories }}" max="{{ goals.calories_goal }}" aria-label="Calories progress"></progress>
+
+            {% set calories_left = goals.calories_goal - total_calories %}
+            <p>
+                {% if calories_left >= 0 %}
+                    {{ calories_left|round|int }} kcal remaining
+                {% else %}
+                    {{ (-calories_left)|round|int }} kcal over goal
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- This shows the amount of protein, carbs and fats the user has had today against their goals -->
+        <div class="dashboard-card">
+            <h3>Protein</h3>
+            <p>{{ total_protein|round|int }} / {{ goals.protein_goal|round|int }} g</p>
+            <progress value="{{ total_protein }}" max="{{ goals.protein_goal }}" aria-label="Protein progress"></progress>
+
+            <h3>Carbohydrates</h3>
+            <p>{{ total_carbs|round|int }} / {{ goals.carbs_goal|round|int }} g</p>
+            <progress value="{{ total_carbs }}" max="{{ goals.carbs_goal }}" aria-label="Carbs progress"></progress>
+
+            <h3>Fats</h3>
+            <p>{{ total_fats|round|int }} / {{ goals.fats_goal|round|int }} g</p>
+            <progress value="{{ total_fats }}" max="{{ goals.fats_goal }}" aria-label="Fats progress"></progress>
+        </div>
+
+    <!-- If the user has no goals yet, they need to set them before progress can be tracked
+    (the goals form lives on the nutrition page) -->
+    {% else %}
+        <div class="dashboard-card">
+            <h2>No nutrition goals yet</h2>
+            <p>Today so far: {{ total_calories|round|int }} kcal</p>
+            <p>Set your calorie and macro goals to track your progress.</p>
+            <a href="{{ url_for('search.full_nutrition_view') }}">Set Goals</a>
+        </div>
+    {% endif %}
+
+    <!-- Nudge for brand new users who haven't logged anything today -->
+    {% if entry_count == 0 %}
+        <p>You haven't logged anything today yet.</p>
+    {% endif %}
+
+    <!-- Quick action buttons for dashboard -->
+    <div class="dashboard-card">
+        <h2>Quick Actions</h2>
+        <a href="{{ url_for('search.search_food_results') }}">Log a Food</a>
+        <a href="{{ url_for('search.full_nutrition_view') }}">View Nutrition</a>
+    </div>
+{% endblock %}

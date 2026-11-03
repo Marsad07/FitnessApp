@@ -40,11 +40,20 @@ def check_foodcache(query):
 
 def search_food(query):
     api_key = os.getenv('USDA_API_KEY')  # os.getenv gets variable specified + returns none if dont exist
-    food = req.get(url, params={"api_key": api_key, "query": query})
+    try:
+        food = req.get(url, params={"api_key": api_key, "query": query}, timeout=10)
+
+    except req.exceptions.RequestException:
+        return None
+
+    if food.status_code != 200:
+        return None
 
     macros = {}  # Macros dict to store specific nutrients + values
 
     foods_list = food.json()["foods"] # foods_list is for the massive list of results for a query
+    if not foods_list:
+        return None
     nutrient_list = foods_list[0]["foodNutrients"]  # Stores full list of food nutrients from first result
     food_desc = foods_list[0]["description"]  # Stores food description from first result
 
@@ -66,7 +75,13 @@ def search_food(query):
 
 def get_food_options(query):
     api_key = os.getenv('USDA_API_KEY')
-    food = req.get(url, params={"api_key": api_key, "query": query})
+    try:
+        food = req.get(url, params={"api_key": api_key, "query": query}, timeout=10)
+    except req.exceptions.RequestException:
+        return None
+    if food.status_code != 200:
+        return None
+
     foods_list = food.json()["foods"]  # Every food USDA returned for this search
 
     foods = []  # Holds a small, clean version of each food (just name + id)
@@ -80,7 +95,11 @@ def fetch_food_details(fdc_id):
     # 1) Builds the URL for this one specific food (id goes in the path, not params)
     api_key = os.getenv('USDA_API_KEY')
     detail_url = f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}"
-    food = req.get(detail_url,  params={"api_key": api_key,})
+    try:
+        food = req.get(detail_url,  params={"api_key": api_key,}, timeout=10)
+    except req.exceptions.RequestException:
+        return None
+
 
     # This checks if USDA actually found this food (200 = found, anything else
     # like 404 = not found or USDA had a problem), if not, sends back None
@@ -91,7 +110,6 @@ def fetch_food_details(fdc_id):
     # 2) Get the food's name and its full nutrient list directly (no [0] needed here)
     food_desc = food.json()["description"]
     nutrient_list = food.json()["foodNutrients"]
-    print(nutrient_list[:3])
     macros = {}
 
     # 3) Loops through nutrients, safely checks each one's id (some entries

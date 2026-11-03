@@ -1,20 +1,35 @@
 {% extends "online/base.html" %}
 
-{% block title %}Search Confirmation{% endblock %}
+{% block title %}Food logged{% endblock %}
 
 {% block content %}
-    <div>
-        <h1 style="text-align: center">Food Logged Successfully</h1><br><br>
-        <h2 style="text-align: center">Here are the macros for {{ new_entry.food_name }}</h2>
-        <p style="text-align: center">Calories: {{ new_entry.calories }} kcal</p>
-        <p style="text-align: center">Protein: {{ new_entry.protein }}g</p>
-        <p style="text-align: center">Carbs: {{ new_entry.carbs }}g</p>
-        <p style="text-align: center">Fats: {{ new_entry.fats }}g</p>
-    </div><br>
-    <button>
-        <a href="{{ url_for('search.full_nutrition_view') }}">View Nutrition</a>
-    </button>
-    <button>
-        <a href="/routes/search">Log New Food</a>
-    </button>
+    <div class="max-w-xl mx-auto rounded-2xl bg-talokan border border-white/5 shadow-card p-7 sm:p-9 text-center animate__animated animate__fadeInUp">
+        <!-- Big gold tick bounces in -->
+        <div class="w-20 h-20 mx-auto mb-5 grid place-items-center rounded-full bg-gold text-panther shadow-glow animate__animated animate__bounceIn" style="animation-delay: .2s">
+            <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <h1 class="font-head text-3xl font-bold tracking-tight">Logged!</h1>
+        <p class="text-muted mt-2">{{ new_entry.food_name }} · {{ new_entry.food_weight|float|round(1) }} g · {{ new_entry.meal_category|capitalize }}</p>
+
+        <!-- The macros for what was just logged -->
+        {% set tiles = [
+            (new_entry.calories|float|round|int, 'kcal', 'border-gold'),
+            ((new_entry.protein|float|round(1)) ~ 'g', 'Protein', 'border-vibranium'),
+            ((new_entry.carbs|float|round(1)) ~ 'g', 'Carbs', 'border-teal'),
+            ((new_entry.fats|float|round(1)) ~ 'g', 'Fats', 'border-mourning/70')
+        ] %}
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-7">
+            {% for value, label, edge in tiles %}
+                <div class="rounded-xl bg-talokan-2 border-t-4 {{ edge }} py-4 px-2 animate__animated animate__zoomIn" style="animation-delay: {{ 0.35 + loop.index0 * 0.1 }}s">
+                    <b class="block font-head text-xl tabular-nums">{{ value }}</b>
+                    <span class="text-sm text-muted">{{ label }}</span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-3">
+            <a href="{{ url_for('search.full_nutrition_view') }}" class="btn-gold rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-5 py-3 transition">View nutrition</a>
+            <a href="{{ url_for('search.search_food_results') }}" class="rounded-xl border border-white/15 hover:border-vibranium hover:shadow-glow px-5 py-3 font-semibold transition">Log another food</a>
+        </div>
+    </div>
 {% endblock %}

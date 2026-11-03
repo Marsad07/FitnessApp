@@ -3,60 +3,113 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-    <h1>Hi {{ username }}, {{ date_label }}</h1>
+    <!-- Greeting + date -->
+    <div class="flex flex-wrap items-end justify-between gap-4 mb-6 animate__animated animate__fadeInUp">
+        <div>
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-teal-light">{{ date_label }}</p>
+            <h1 class="font-head text-3xl sm:text-4xl font-bold tracking-tight mt-1">Hi {{ username }}</h1>
+        </div>
+        <a href="{{ url_for('search.search_food_results') }}" class="btn-gold inline-flex items-center gap-2 rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-5 py-3 transition">+ Log a food</a>
+    </div>
 
-    <!-- This shows the current calories for the day and if the user is on track or not -->
     {% if goals %}
-        <div class="dashboard-card">
-            <h2>Today's Calories</h2>
-            <p>{{ total_calories|round|int }} / {{ goals.calories_goal|round|int }} kcal</p>
-            <progress value="{{ total_calories }}" max="{{ goals.calories_goal }}" aria-label="Calories progress"></progress>
+        <!-- This shows today's calories as a ring (gold, red if over) and whether the user is on track -->
+        {% set cal_goal = goals.calories_goal|float %}
+        {% set cal_now = total_calories|float %}
+        {% set calories_left = cal_goal - cal_now %}
+        {% set ring_pct = [cal_now / cal_goal, 1]|min if cal_goal > 0 else 1 %}
 
-            {% set calories_left = goals.calories_goal - total_calories %}
-            <p>
+        <section class="grid gap-5 lg:grid-cols-5 mb-6">
+            <div class="lg:col-span-2 rounded-2xl bg-talokan border border-white/5 shadow-card p-6 flex flex-col items-center text-center animate__animated animate__zoomIn">
+                <h2 class="font-head font-semibold text-lg self-start">Today's calories</h2>
+                <div class="relative w-52 h-52 my-4">
+                    <svg viewBox="0 0 120 120" class="w-full h-full" role="img"
+                         aria-label="{{ cal_now|round|int }} of {{ cal_goal|round|int }} calories">
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+                        <circle cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke-linecap="round"
+                                class="ring-arc" stroke="{% if calories_left < 0 %}#A3192E{% else %}#C9A24A{% endif %}"
+                                style="--ring-offset: {{ 326.73 * (1 - ring_pct) }}"/>
+                    </svg>
+                    <div class="absolute inset-0 grid place-content-center">
+                        <p class="font-head text-4xl font-bold tabular-nums">{{ cal_now|round|int }}</p>
+                        <p class="text-sm text-muted tabular-nums">of {{ cal_goal|round|int }} kcal</p>
+                    </div>
+                </div>
                 {% if calories_left >= 0 %}
-                    {{ calories_left|round|int }} kcal remaining
+                    <p class="font-semibold"><span class="text-gold tabular-nums">{{ calories_left|round|int }} kcal</span> remaining</p>
                 {% else %}
-                    {{ (-calories_left)|round|int }} kcal over goal
+                    <p class="font-semibold"><span class="bg-danger text-mourning rounded-md px-2 py-0.5 tabular-nums">{{ (-calories_left)|round|int }} kcal over</span> your goal</p>
                 {% endif %}
-            </p>
-        </div>
+            </div>
 
-        <!-- This shows the amount of protein, carbs and fats the user has had today against their goals -->
-        <div class="dashboard-card">
-            <h3>Protein</h3>
-            <p>{{ total_protein|round|int }} / {{ goals.protein_goal|round|int }} g</p>
-            <progress value="{{ total_protein }}" max="{{ goals.protein_goal }}" aria-label="Protein progress"></progress>
-
-            <h3>Carbohydrates</h3>
-            <p>{{ total_carbs|round|int }} / {{ goals.carbs_goal|round|int }} g</p>
-            <progress value="{{ total_carbs }}" max="{{ goals.carbs_goal }}" aria-label="Carbs progress"></progress>
-
-            <h3>Fats</h3>
-            <p>{{ total_fats|round|int }} / {{ goals.fats_goal|round|int }} g</p>
-            <progress value="{{ total_fats }}" max="{{ goals.fats_goal }}" aria-label="Fats progress"></progress>
-        </div>
+            <!-- This shows the amount of protein, carbs and fats the user has had today against their goals -->
+            <div class="lg:col-span-3 rounded-2xl bg-talokan border border-white/5 shadow-card p-6 animate__animated animate__fadeInUp" style="animation-delay: .1s">
+                <h2 class="font-head font-semibold text-lg mb-5">Macros</h2>
+                {% set macros = [
+                    ('Protein', total_protein, goals.protein_goal, 'bg-vibranium', 'text-vib-light'),
+                    ('Carbohydrates', total_carbs, goals.carbs_goal, 'bg-teal', 'text-teal-light'),
+                    ('Fats', total_fats, goals.fats_goal, 'bg-mourning/70', 'text-mourning')
+                ] %}
+                <div class="grid gap-6">
+                    {% for label, now, goal, bar, text in macros %}
+                        {% set pct = [now|float / goal|float * 100, 100]|min if goal|float > 0 else 100 %}
+                        {% set over = now|float > goal|float %}
+                        <div>
+                            <div class="flex items-baseline justify-between mb-2">
+                                <span class="font-semibold {{ text }}">{{ label }}</span>
+                                <span class="tabular-nums text-sm">
+                                    <b class="text-mourning text-base">{{ now|round|int }}</b>
+                                    <span class="text-muted">/ {{ goal|round|int }} g</span>
+                                </span>
+                            </div>
+                            <div class="h-3 rounded-full bg-white/10 overflow-hidden">
+                                <div class="bar-fill h-full rounded-full {% if over %}bg-danger{% else %}{{ bar }}{% endif %}" style="width: {{ pct }}%"></div>
+                            </div>
+                            <p class="text-xs text-muted mt-1.5 tabular-nums">
+                                {% if over %}{{ (now|float - goal|float)|round|int }} g over{% else %}{{ (goal|float - now|float)|round|int }} g left{% endif %}
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
 
     <!-- If the user has no goals yet, they need to set them before progress can be tracked
     (the goals form lives on the nutrition page) -->
     {% else %}
-        <div class="dashboard-card">
-            <h2>No nutrition goals yet</h2>
-            <p>Today so far: {{ total_calories|round|int }} kcal</p>
-            <p>Set your calorie and macro goals to track your progress.</p>
-            <a href="{{ url_for('search.full_nutrition_view') }}">Set Goals</a>
-        </div>
+        <section class="relative overflow-hidden rounded-2xl bg-talokan border border-vibranium/40 shadow-card p-7 mb-6 animate__animated animate__zoomIn">
+            <div aria-hidden="true" class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-vibranium/25 blur-3xl"></div>
+            <div class="relative">
+                <h2 class="font-head text-2xl font-bold">Set your daily goals</h2>
+                <p class="text-muted mt-2 max-w-lg">Today so far: <b class="text-mourning tabular-nums">{{ total_calories|round|int }} kcal</b>. Add your calorie and macro targets to see how much you have left each day.</p>
+                <a href="{{ url_for('search.full_nutrition_view') }}#goals" class="btn-gold inline-flex mt-5 rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-5 py-3 transition">Set goals</a>
+            </div>
+        </section>
     {% endif %}
 
     <!-- Nudge for brand new users who haven't logged anything today -->
     {% if entry_count == 0 %}
-        <p>You haven't logged anything today yet.</p>
+        <div class="rounded-2xl border-2 border-dashed border-white/10 px-6 py-8 text-center mb-6 animate__animated animate__fadeIn">
+            <p class="font-semibold">You haven't logged anything today yet.</p>
+            <p class="text-muted text-sm mt-1">Search a food, enter how many grams you had, and it'll show up here.</p>
+        </div>
     {% endif %}
 
-    <!-- Quick action buttons for dashboard -->
-    <div class="dashboard-card">
-        <h2>Quick Actions</h2>
-        <a href="{{ url_for('search.search_food_results') }}">Log a Food</a>
-        <a href="{{ url_for('search.full_nutrition_view') }}">View Nutrition</a>
-    </div>
+    <!-- Quick action cards -->
+    <section class="grid gap-4 sm:grid-cols-2">
+        <a href="{{ url_for('search.search_food_results') }}" class="group rounded-2xl bg-talokan border border-white/5 p-5 flex items-center gap-4 hover:shadow-glow hover:border-vibranium/50 transition animate__animated animate__fadeInUp" style="animation-delay: .2s">
+            <span class="grid place-items-center w-12 h-12 rounded-xl bg-teal/15 text-teal-light">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            </span>
+            <span class="flex-1"><b class="block">Log a food</b><span class="text-sm text-muted">Search the USDA database</span></span>
+            <span class="text-gold text-xl group-hover:translate-x-1 transition" aria-hidden="true">→</span>
+        </a>
+        <a href="{{ url_for('search.full_nutrition_view') }}" class="group rounded-2xl bg-talokan border border-white/5 p-5 flex items-center gap-4 hover:shadow-glow hover:border-vibranium/50 transition animate__animated animate__fadeInUp" style="animation-delay: .3s">
+            <span class="grid place-items-center w-12 h-12 rounded-xl bg-vibranium/20 text-vib-light">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+            </span>
+            <span class="flex-1"><b class="block">View nutrition</b><span class="text-sm text-muted">Meals, macros and past days</span></span>
+            <span class="text-gold text-xl group-hover:translate-x-1 transition" aria-hidden="true">→</span>
+        </a>
+    </section>
 {% endblock %}

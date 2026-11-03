@@ -92,7 +92,7 @@ def search_food_results():
     result = check_foodcache(food_name)   # Used to be hardcoded, now contains real variable
     # Check after call to show that app could not reach db
     if result is None:
-        flash("We couldn't reach the food database, Please try again in a minute")
+        flash("We couldn't reach the food database, Please try again in a minute", 'error')
         return redirect(url_for('search.search_food_results'))
 
     return render_template('online/foods/food_search_list.html', foods=result)
@@ -115,12 +115,12 @@ def full_nutrition_view():
         try:
             current_date = datetime.strptime(current_date, '%Y-%m-%d').date()
         except ValueError:
-            flash("That date isn't valid, showing today instead")
+            flash("That date isn't valid, showing today instead", 'info')
             return redirect(url_for('search.full_nutrition_view'))
 
         # Only past days and today can be viewed
         if current_date > date.today():
-            flash("You can't view future days, showing today instead")
+            flash("You can't view future days, showing today instead", 'info')
             return redirect(url_for('search.full_nutrition_view'))
 
     # The days either side of the one being viewed, for the Previous/Next day links
@@ -177,7 +177,7 @@ def food_chosen():
 
         # Only allows the 4 meals from the dropdown (the form can be edited in DevTools)
         if meal_category not in MEALS:
-            flash('Please choose breakfast, lunch, dinner or snack')
+            flash('Please choose breakfast, lunch, dinner or snack', 'error')
             return redirect(url_for('search.food_chosen', fdcId=fdc_Id))
 
         # Tries to turn the weight from text into a decimal number so it can be used for equation
@@ -187,20 +187,20 @@ def food_chosen():
         # weight missing from the url completely = TypeError), tells the user and
         # sends them back to the same food form
         except (ValueError, TypeError):
-            flash('Invalid input, Enter a number for food weight!')
+            flash('Invalid input, Enter a number for food weight!', 'error')
             return redirect(url_for('search.food_chosen', fdcId=fdc_Id))
 
         # 2) By this point it's definitely a number, so it's safe to compare it to 0
         # It rejects 0 or negative weights before calling USDA or saving anything
         if food_weight <= 0:
-            flash('Invalid input, Enter a number bigger than 0 for food weight!')
+            flash('Invalid input, Enter a number bigger than 0 for food weight!', 'error')
             return redirect(url_for('search.food_chosen', fdcId=fdc_Id))
 
         # Fetches full, real details for this specific food
         details = fetch_food_details(fdc_Id)
 
         if details is None:
-            flash('No details found for this food!')
+            flash('No details found for this food!', 'error')
             return redirect(url_for('search.search_food_results'))
 
 
@@ -242,13 +242,13 @@ def delete_entry():
 
     # If there's nothing to delete, tells user via flash message and sends them back
     if result is None:
-        flash('This food does not exist')
+        flash('This food does not exist', 'error')
         return redirect(url_for('search.full_nutrition_view'))
     # This actually deletes it and makes it permanent
     else:
         db.session.delete(result)
         db.session.commit()
-        flash('This food has now been deleted')
+        flash('This food has now been deleted', 'success')
         return redirect(url_for('search.full_nutrition_view'))
 
 @food_bp.route('/edit_entry', methods=['GET', 'POST'])
@@ -270,7 +270,7 @@ def edit_entry():
 
     # If the entry doesn't exist, tell the user and go back to the nutrition
     if result is None:
-        flash('This food does not exist')
+        flash('This food does not exist', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # Moment 1: Edit link was just clicked, where nothing submitted yet,
@@ -286,7 +286,7 @@ def edit_entry():
 
     # Only allows the 4 meals from the dropdown (the form can be edited in DevTools)
     if meal_category not in MEALS:
-        flash('Please choose breakfast, lunch, dinner or snack')
+        flash('Please choose breakfast, lunch, dinner or snack', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # Since form values are text, this converts the new weight to a number
@@ -294,12 +294,12 @@ def edit_entry():
     try:
         new_food_weight = float(food_weight)
     except (ValueError, TypeError):
-        flash('Please enter a number for the food weight!')
+        flash('Please enter a number for the food weight!', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # This rejects 0 or negative weights BEFORE changing anything
     if new_food_weight <= 0:
-        flash('You cannot put 0 for food weight, Please enter a number bigger than 0!')
+        flash('You cannot put 0 for food weight, Please enter a number bigger than 0!', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # This retrieves the old weight (treated as 0 if nothing was saved)
@@ -321,7 +321,7 @@ def edit_entry():
     result.meal_category = meal_category
 
     db.session.commit()
-    flash(message)
+    flash(message, 'success')
     return redirect(url_for('search.full_nutrition_view'))
 
 @food_bp.route('/set_goals', methods=['POST'])
@@ -342,25 +342,25 @@ def set_goals():
         carbs_goal = float(carbs_goal)
         fats_goal = float(fats_goal)
     except (ValueError, TypeError):
-        flash('Please enter a number for all goals!')
+        flash('Please enter a number for all goals!', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # Range checks for goals
     if not (1 <= calories_goal <= 9999):
-        flash('Your calories goal must be between 1 and 9999')
+        flash('Your calories goal must be between 1 and 9999', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # Macros are allowed to be 0 (e.g. someone doing keto might set 0 carbs)
     if not (0 <= protein_goal <= 1000):
-        flash('Your protein goal must be between 0 and 1000g')
+        flash('Your protein goal must be between 0 and 1000g', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     if not (0 <= carbs_goal <= 1000):
-        flash('Your carbs goal must be between 0 and 1000g')
+        flash('Your carbs goal must be between 0 and 1000g', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     if not (0 <= fats_goal <= 500):
-        flash('Your fats goal must be between 0 and 500g')
+        flash('Your fats goal must be between 0 and 500g', 'error')
         return redirect(url_for('search.full_nutrition_view'))
 
     # Looks up users goals row, if its None -> create new row with user id + the 4 goals
@@ -383,7 +383,7 @@ def set_goals():
 
     # Saves it and sends the user back to the nutrition page
     db.session.commit()
-    flash('Your daily goals have been saved')
+    flash('Your daily goals have been saved', 'success')
     return redirect(url_for('search.full_nutrition_view'))
 
 

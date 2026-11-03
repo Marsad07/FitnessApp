@@ -1,34 +1,51 @@
 {% extends "online/base.html" %}
 
-{% block title %}Food Details Form{% endblock %}
+{% block title %}{% if entry_id %}Edit entry{% else %}Log food{% endif %}{% endblock %}
 
 {% block content %}
-    <div>
-        <!-- If editing an existing entry, submit to edit_entry - otherwise submit to food_chosen
-        (logging a brand new food) -->
-        <form method="{% if entry_id%}POST{% else %}GET{% endif %}"
-              action="{% if entry_id %}/routes/edit_entry{% else %}/routes/food_chosen{% endif %}">
+    <div class="max-w-lg mx-auto rounded-2xl bg-talokan border border-white/5 shadow-card p-6 sm:p-8 animate__animated animate__zoomIn">
+        <!-- If editing an existing entry, submit to edit_entry (POST) - otherwise submit to food_chosen
+        (GET, logging a brand new food) -->
+        <form method="{% if entry_id %}POST{% else %}GET{% endif %}"
+              action="{% if entry_id %}{{ url_for('search.edit_entry') }}{% else %}{{ url_for('search.food_chosen') }}{% endif %}">
             {% if entry_id %}
-                <h1 style="text-align: center">Edit Entry</h1>
+                <p class="text-sm font-bold uppercase tracking-[0.18em] text-teal-light">Edit entry</p>
+                <h1 class="font-head text-2xl sm:text-3xl font-bold tracking-tight mt-1">{{ food_name }}</h1>
                 <input type="hidden" name="id" value="{{ entry_id }}">
             {% else %}
-                <h1 style="text-align: center">Log Food</h1><br>
+                <p class="text-sm font-bold uppercase tracking-[0.18em] text-teal-light">Log food</p>
+                <h1 class="font-head text-2xl sm:text-3xl font-bold tracking-tight mt-1">How much did you have?</h1>
                 <input type="hidden" name="fdcId" value="{{ fdc_id }}">
             {% endif %}
-            <label for="meal_category">Meal Category</label><br>
-            <select name="meal_category" id="meal_category">
-                <option value="breakfast" {% if meal_category == "breakfast" %}selected{% endif %}>Breakfast</option>
-                <option value="lunch" {% if meal_category == "lunch" %}selected{% endif %}>Lunch</option>
-                <option value="dinner" {% if meal_category == "dinner" %}selected{% endif %}>Dinner</option>
-                <option value="snack" {% if meal_category == "snack" %}selected{% endif %}>Snack</option>
-            </select><br>
 
-            <label for="food_weight">Food Weight(g)</label>
-            <!-- step="any" allows decimals to be entered like 150.5 -->
-            <!-- min + required are used to stop input being empty / 0 / negative -->
-            <input type="number" id="food_weight" name="food_weight" value="{{ food_weight }}"
-            step="any" min="0.1" required>
-            <button type="submit" id="submit_btn">Submit</button>
+            <!-- Meal picker as 4 pill buttons (radio buttons underneath, same name + values as the old dropdown).
+            New foods default to breakfast, edits show the entry's current meal -->
+            <fieldset class="mt-6">
+                <legend class="block text-sm font-semibold text-muted mb-2">Meal</legend>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {% for meal in ['breakfast', 'lunch', 'dinner', 'snack'] %}
+                        <label class="cursor-pointer">
+                            <input type="radio" name="meal_category" value="{{ meal }}" class="peer sr-only" required
+                                   {% if meal_category == meal or (not meal_category and loop.first) %}checked{% endif %}>
+                            <span class="block text-center rounded-xl border border-white/15 px-3 py-2.5 font-semibold transition
+                                         peer-checked:border-gold peer-checked:bg-gold/15 peer-checked:text-gold
+                                         peer-focus-visible:ring-4 peer-focus-visible:ring-vibranium/30 hover:border-vibranium">{{ meal|capitalize }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <div class="mt-5">
+                <label for="food_weight" class="block text-sm font-semibold text-muted mb-1.5">Weight (g)</label>
+                <!-- step="any" allows decimals like 150.5, min + required stop empty / 0 / negative -->
+                <input type="number" id="food_weight" name="food_weight" value="{{ food_weight }}"
+                       step="any" min="0.1" required placeholder="e.g. 150"
+                       class="w-full rounded-xl bg-talokan-2 border border-white/10 px-4 py-3 text-lg text-mourning placeholder-muted/70 focus:outline-none focus:border-vibranium focus:ring-4 focus:ring-vibranium/25 transition">
+            </div>
+
+            <button type="submit" id="submit_btn" class="btn-gold w-full mt-6 rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-5 py-3.5 transition">
+                {% if entry_id %}Save changes{% else %}Log it{% endif %}
+            </button>
         </form>
     </div>
 {% endblock %}

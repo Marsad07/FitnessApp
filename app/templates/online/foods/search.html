@@ -1,12 +1,32 @@
 {% extends "online/base.html" %}
 
-{% block title %}Search{% endblock %}
+{% block title %}Add food{% endblock %}
 
 {% block content %}
-    <h1>Food Search</h1>
-    <form method="get" action="/routes/search">
-        <label for="food_name">Food Name</label>
-        <input type="text" id="food_name" name="food_name" required><br><br>
-        <button type="submit" id="submit_btn">Search</button>
-    </form>
+    <div class="max-w-2xl mx-auto animate__animated animate__fadeInUp">
+        <p class="text-sm font-bold uppercase tracking-[0.18em] text-teal-light">Add food</p>
+        <h1 class="font-head text-3xl sm:text-4xl font-bold tracking-tight mt-1">What did you eat?</h1>
+        <p class="text-muted mt-2 mb-6">Search the USDA FoodData Central database, then pick the closest match.</p>
+
+        <form method="get" action="{{ url_for('search.search_food_results') }}"
+              class="rounded-2xl bg-talokan border border-white/5 shadow-card p-3 flex flex-col sm:flex-row gap-3 focus-within:border-vibranium focus-within:shadow-glow transition">
+            <label for="food_name" class="sr-only">Food name</label>
+            <div class="flex-1 flex items-center gap-3 px-3">
+                <svg class="w-5 h-5 text-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input type="text" id="food_name" name="food_name" required autofocus
+                       placeholder="e.g. banana, chicken breast, oats"
+                       class="w-full bg-transparent py-3 text-lg text-mourning placeholder-muted/70 focus:outline-none">
+            </div>
+            <button type="submit" id="submit_btn" class="btn-gold rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-6 py-3 transition">Search</button>
+        </form>
+
+        <!-- Quick searches for common foods -->
+        <div class="flex flex-wrap items-center gap-2 mt-5">
+            <span class="text-sm text-muted mr-1">Try:</span>
+            {% for idea in ['banana', 'chicken breast', 'rice', 'oats', 'salmon', 'egg'] %}
+                <a href="{{ url_for('search.search_food_results', food_name=idea) }}"
+                   class="text-sm font-semibold text-teal-light bg-teal/15 border border-teal/40 hover:border-teal-light rounded-full px-3 py-1 transition">{{ idea }}</a>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}

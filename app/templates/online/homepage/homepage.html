@@ -1,13 +1,74 @@
 {% extends "online/base.html" %}
 
-{% block title %}Griot Fitness{% endblock %}
+{% block title %}Track your nutrition{% endblock %}
 
 {% block content %}
-    <!-- Landing page for logged out users - logged in users see their dashboard instead -->
-    <h1>Griot Fitness</h1>
-    <h2>Fuel your goals, one meal at a time</h2>
-    <p>Search real nutrition data, log what you eat by the gram and see your calories and macros add up against your daily goals.</p>
+    <!-- Landing page for logged out users - logged in users see their dashboard instead.
+    Left: the pitch + buttons. Right: a preview of what the dashboard looks like (example numbers) -->
+    <section class="grid lg:grid-cols-2 gap-10 items-center py-6 lg:py-14">
+        <div>
+            <p class="inline-block text-xs font-bold tracking-[0.2em] uppercase text-teal-light bg-teal/15 border border-teal/40 rounded-full px-3 py-1 animate__animated animate__fadeInUp">Calories · Protein · Carbs · Fats</p>
+            <h1 class="font-head text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05] mt-6 animate__animated animate__fadeInUp" style="animation-delay: .1s">
+                Fuel your goals,<br><span class="text-gold">one meal at a time.</span>
+            </h1>
+            <p class="text-muted text-lg max-w-lg mt-6 animate__animated animate__fadeInUp" style="animation-delay: .2s">
+                Search real nutrition data, log what you eat by the gram and see your calories and macros add up against your daily goals.
+            </p>
+            <div class="flex flex-wrap gap-3 mt-8 animate__animated animate__fadeInUp" style="animation-delay: .3s">
+                <a href="{{ url_for('auth.register') }}" class="btn-gold rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-6 py-3.5 transition">Create an account</a>
+                <a href="{{ url_for('auth.login') }}" class="rounded-xl border border-white/15 hover:border-vibranium hover:shadow-glow px-6 py-3.5 font-semibold transition">Log in</a>
+            </div>
+        </div>
 
-    <a href="{{ url_for('auth.register') }}">Create an account</a>
-    <a href="{{ url_for('auth.login') }}">Log in</a>
+        <!-- Preview card (example numbers, not real data) -->
+        <div class="relative animate__animated animate__zoomIn" style="animation-delay: .35s" aria-hidden="true">
+            <div class="absolute -inset-6 rounded-[2rem] bg-vibranium/20 blur-3xl"></div>
+            <div class="relative rounded-3xl bg-talokan border border-vibranium/40 shadow-glow p-6">
+                <div class="flex items-center justify-between">
+                    <p class="font-head font-semibold">Today</p>
+                    <p class="text-xs font-bold uppercase tracking-[0.18em] text-teal-light">Example</p>
+                </div>
+                <div class="flex items-center gap-6 mt-5">
+                    <div class="relative w-36 h-36 shrink-0">
+                        <svg viewBox="0 0 120 120" class="w-full h-full">
+                            <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10"/>
+                            <circle cx="60" cy="60" r="52" fill="none" stroke="#C9A24A" stroke-width="10" stroke-linecap="round" class="ring-arc" style="--ring-offset: 128"/>
+                        </svg>
+                        <div class="absolute inset-0 grid place-content-center text-center">
+                            <p class="font-head text-2xl font-bold">1,450</p>
+                            <p class="text-xs text-muted">of 2,400 kcal</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 grid gap-4">
+                        {% for label, pct, bar in [('Protein', 72, 'bg-vibranium'), ('Carbs', 55, 'bg-teal'), ('Fats', 48, 'bg-mourning/70')] %}
+                            <div>
+                                <p class="text-sm font-semibold mb-1.5">{{ label }}</p>
+                                <div class="h-2.5 rounded-full bg-white/10 overflow-hidden"><div class="bar-fill h-full rounded-full {{ bar }}" style="width: {{ pct }}%"></div></div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mt-6 grid gap-2">
+                    {% for food, kcal in [('Oats, rolled, dry', 227), ('Chicken breast, roasted', 297), ('Greek yogurt', 100)] %}
+                        <div class="flex justify-between rounded-xl bg-talokan-2 px-4 py-2.5 text-sm"><span>{{ food }}</span><span class="text-gold font-semibold">{{ kcal }} kcal</span></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3 feature cards -->
+    <section class="grid gap-5 sm:grid-cols-3 mt-6">
+        {% for title, text, tint, delay in [
+            ('Search any food', 'Powered by the USDA FoodData Central database.', 'bg-teal/15 text-teal-light', 0.45),
+            ('Log by weight', 'Macros scale to exactly how many grams you ate.', 'bg-vibranium/20 text-vib-light', 0.55),
+            ('Hit your goals', "Set daily targets and see what's left at a glance.", 'bg-gold/15 text-gold', 0.65)
+        ] %}
+            <div class="rounded-2xl bg-talokan border border-white/5 p-6 hover:-translate-y-1 hover:shadow-glow transition animate__animated animate__fadeInUp" style="animation-delay: {{ delay }}s">
+                <div class="w-11 h-11 grid place-items-center rounded-xl {{ tint }} font-head font-bold mb-4">{{ loop.index }}</div>
+                <h3 class="font-head font-semibold text-lg">{{ title }}</h3>
+                <p class="text-muted mt-1">{{ text }}</p>
+            </div>
+        {% endfor %}
+    </section>
 {% endblock %}

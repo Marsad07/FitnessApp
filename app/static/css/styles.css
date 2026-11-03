@@ -1,23 +1,57 @@
-/* Main nav bar styling*/
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
+/* =========================================================
+   Griot Fitness - extras that Tailwind classes can't do on their own.
+   Everything else (colours, spacing, layout) is Tailwind classes in the templates.
+   ========================================================= */
+
+/* Progress bars grow from 0 to their width when the page loads */
+.bar-fill {
+    transform-origin: left;
+    animation: bar-grow 1s ease-out both;
 }
 
-nav {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    padding: 14px 24px;
-    background-color: #1f3864;
+@keyframes bar-grow {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
 }
 
-nav a {
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
+/* Calorie ring on the dashboard - the gold arc draws itself round from the top.
+   --ring-offset is set on the element in the template (how much of the circle is left empty) */
+.ring-arc {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    stroke-dasharray: 326.73;          /* full length of the circle (2 x pi x radius 52) */
+    stroke-dashoffset: 326.73;
+    animation: ring-draw 1.2s ease-out 0.2s forwards;
 }
 
-nav a:hover {
-    text-decoration: underline;
+@keyframes ring-draw {
+    to { stroke-dashoffset: var(--ring-offset); }
+}
+
+/* Gold buttons give a quick animate.css "pulse" on hover, delete buttons a "headShake" */
+.btn-gold:hover { animation: pulse 0.6s; }
+.btn-danger:hover { animation: headShake 0.6s; }
+
+/* Toasts fade out before they're removed */
+.toast {
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.toast-hide {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+
+/* Hides the default arrow on the goals box so the custom one shows */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] .chev { transform: rotate(180deg); }
+
+/* Respect people who turn animations off in their device settings */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+    .ring-arc { stroke-dashoffset: var(--ring-offset); }
 }

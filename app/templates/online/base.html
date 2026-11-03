@@ -2,30 +2,183 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
+    <!-- Makes the page fit phone screens properly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{% endblock %} · Griot Fitness</title>
+
+    <!-- Fonts: Sora for headings, Manrope for normal text -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap">
+
+    <!-- animate.css (animate.style) for the entrance + attention animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Tailwind CSS (play CDN) - fine while building, swap for the Tailwind CLI build before deploying -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>
+        // The Griot palette added to Tailwind, so classes like bg-panther / text-gold work everywhere
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        panther: "#0D0D10",       // page background (60%)
+                        talokan: "#0A1F33",       // sidebar, cards, sections (30%)
+                        "talokan-2": "#0F2A45",   // inputs + hover on navy
+                        mourning: "#F2EFE9",      // main text
+                        muted: "#A9B4C2",         // secondary text (8:1 on navy)
+                        gold: "#C9A24A",          // primary - main buttons, links, key numbers (use sparingly)
+                        "gold-2": "#B08A36",
+                        vibranium: "#7B3FC4",     // accent - glows, borders, focus (not body text)
+                        "vib-light": "#B48BEA",   // readable purple tint for small text on navy
+                        teal: "#1F8A8A",          // secondary - tags, icons, secondary buttons
+                        "teal-light": "#5FC4C4",  // readable teal tint for small text on navy
+                        danger: "#A3192E"         // errors - only ever with light text on top
+                    },
+                    fontFamily: {
+                        head: ["Sora", "Segoe UI", "system-ui", "sans-serif"],
+                        body: ["Manrope", "Segoe UI", "system-ui", "sans-serif"]
+                    },
+                    boxShadow: {
+                        glow: "0 0 0 1px rgba(123,63,196,.5), 0 10px 30px rgba(123,63,196,.25)",
+                        card: "0 12px 32px rgba(0,0,0,.35)"
+                    }
+                }
+            }
+        };
+    </script>
+    <!-- Small extras Tailwind can't do on its own (ring + bar animations, toasts, reduced motion) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
-<!-- Top nav bar -->
-    <nav>
-        <a href="{{ url_for('homepage') }}">Home</a>
-        <a href="{{ url_for('search.search_food_results') }}">Search</a>
-        <a href="{{ url_for('search.full_nutrition_view') }}">Nutrition</a>
-        {% if session.get('user_id')  %}
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
-        {% else %}
-            <a href="{{ url_for('auth.register') }}">Register</a>
-            <a href="{{ url_for('auth.login') }}">Login</a>
+
+{% set logged_in = session.get('user_id') %}
+{% set page = request.endpoint or '' %}
+
+<body class="bg-panther text-mourning font-body antialiased min-h-screen">
+
+    {% if logged_in %}
+        <!-- ===== Logged in: sidebar on big screens, top bar + bottom tabs on phones ===== -->
+        {% set nav_items = [
+            ('homepage', 'Dashboard', 'home'),
+            ('search.search_food_results', 'Add food', 'plus'),
+            ('search.full_nutrition_view', 'Nutrition', 'chart')
+        ] %}
+        {% set active = {
+            'homepage': 'homepage',
+            'search.search_food_results': 'search.search_food_results',
+            'search.food_chosen': 'search.search_food_results',
+            'search.full_nutrition_view': 'search.full_nutrition_view',
+            'search.edit_entry': 'search.full_nutrition_view'
+        }.get(page, '') %}
+
+        {% macro nav_icon(name, classes) %}
+            {% if name == 'home' %}
+                <svg class="{{ classes }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+            {% elif name == 'plus' %}
+                <svg class="{{ classes }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+            {% else %}
+                <svg class="{{ classes }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+            {% endif %}
+        {% endmacro %}
+
+        <!-- Sidebar (laptop / desktop) -->
+        <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-talokan border-r border-white/5 px-5 py-6 animate__animated animate__fadeInLeft animate__faster">
+            <a href="{{ url_for('homepage') }}" class="flex items-center gap-3 mb-10 group">
+                <span class="grid place-items-center w-10 h-10 rounded-xl bg-gold text-panther font-head font-extrabold group-hover:shadow-glow transition">G</span>
+                <span class="font-head font-bold text-lg tracking-tight">Griot <span class="text-gold">Fitness</span></span>
+            </a>
+            <nav class="flex flex-col gap-1" aria-label="Main">
+                {% for endpoint, label, icon in nav_items %}
+                    <a href="{{ url_for(endpoint) }}"
+                       class="flex items-center gap-3 rounded-xl px-3 py-2.5 font-semibold transition
+                              {% if active == endpoint %}bg-white/5 text-gold shadow-[inset_3px_0_0_#C9A24A]{% else %}text-mourning/75 hover:text-mourning hover:bg-white/5{% endif %}"
+                       {% if active == endpoint %}aria-current="page"{% endif %}>
+                        {{ nav_icon(icon, 'w-5 h-5') }} {{ label }}
+                    </a>
+                {% endfor %}
+            </nav>
+            <div class="mt-auto border-t border-white/10 pt-5">
+                <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-mourning/75 hover:text-mourning hover:bg-white/5 font-semibold transition">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/></svg>
+                    Log out
+                </a>
+            </div>
+        </aside>
+
+        <!-- Top bar (phones / tablets) -->
+        <header class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-talokan/95 backdrop-blur border-b border-white/5 px-4 py-3">
+            <a href="{{ url_for('homepage') }}" class="flex items-center gap-2.5">
+                <span class="grid place-items-center w-8 h-8 rounded-lg bg-gold text-panther font-head font-extrabold">G</span>
+                <span class="font-head font-bold">Griot <span class="text-gold">Fitness</span></span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="text-sm font-semibold text-muted hover:text-mourning">Log out</a>
+        </header>
+
+        <!-- Bottom tab bar (phones / tablets) -->
+        <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 grid grid-cols-3 bg-talokan/95 backdrop-blur border-t border-white/10 pb-[env(safe-area-inset-bottom)]" aria-label="Main">
+            {% for endpoint, label, icon in nav_items %}
+                <a href="{{ url_for(endpoint) }}" class="flex flex-col items-center gap-1 py-2.5 text-xs font-semibold {% if active == endpoint %}text-gold{% else %}text-muted{% endif %}"
+                   {% if active == endpoint %}aria-current="page"{% endif %}>
+                    {{ nav_icon(icon, 'w-6 h-6') }} {{ label }}
+                </a>
+            {% endfor %}
+        </nav>
+
+    {% else %}
+        <!-- ===== Logged out: simple top bar ===== -->
+        <header class="sticky top-0 z-30 bg-panther/90 backdrop-blur border-b border-white/5 animate__animated animate__fadeInDown animate__faster">
+            <div class="max-w-6xl mx-auto flex items-center justify-between gap-4 px-4 sm:px-8 py-4">
+                <a href="{{ url_for('homepage') }}" class="flex items-center gap-2.5">
+                    <span class="grid place-items-center w-9 h-9 rounded-xl bg-gold text-panther font-head font-extrabold">G</span>
+                    <span class="font-head font-bold text-lg">Griot <span class="text-gold">Fitness</span></span>
+                </a>
+                <nav class="flex items-center gap-2 text-sm font-semibold" aria-label="Main">
+                    <a href="{{ url_for('auth.login') }}" class="px-4 py-2 rounded-full text-mourning/80 hover:text-mourning hover:bg-white/5 transition {% if page == 'auth.login' %}text-gold{% endif %}">Log in</a>
+                    <a href="{{ url_for('auth.register') }}" class="px-4 py-2 rounded-full bg-gold text-panther hover:bg-gold-2 transition">Sign up</a>
+                </nav>
+            </div>
+        </header>
+    {% endif %}
+
+    <!-- main = where every page's own content goes (leaves room for the sidebar / bottom tabs when logged in) -->
+    <main class="{% if logged_in %}lg:pl-64 pb-24 lg:pb-10{% else %}pb-16{% endif %}">
+        <div class="{% if logged_in %}max-w-5xl pt-6 lg:pt-10{% else %}max-w-6xl pt-8{% endif %} mx-auto px-4 sm:px-8">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Flash messages as toasts - bottom-right on bigger screens (so they don't cover the header),
+    under the top bar on phones.
+    The category decides the colour: success = gold edge, error = red, info = teal.
+    They slide in, and fade away by themselves after 6 seconds (or press x) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed z-50 left-4 right-4 top-16 sm:top-auto sm:left-auto sm:right-6 sm:bottom-6 sm:w-96 grid gap-3" role="status" aria-live="polite">
+                {% for category, message in messages %}
+                    {% set style = {
+                        'success': 'bg-talokan border-gold',
+                        'error': 'bg-danger border-mourning/70',
+                        'info': 'bg-talokan border-teal'
+                    }.get(category, 'bg-talokan border-teal') %}
+                    <div class="toast flex items-start gap-3 rounded-xl border-l-4 {{ style }} px-4 py-3 shadow-card animate__animated {% if category == 'error' %}animate__headShake{% else %}animate__fadeInRight{% endif %}">
+                        <p class="flex-1 font-semibold text-mourning">{{ message }}</p>
+                        <button type="button" class="toast-close text-mourning/70 hover:text-mourning text-lg leading-none" aria-label="Dismiss message">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
-    </nav>
-    <!-- Shows  error message sent back from the route (e.g. invalid weight) -->
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
     {% endwith %}
 
-    {% block content %}
-    {% endblock %}
+    <script>
+        // Lets each toast be closed with x, and removes them all by themselves after 6 seconds
+        document.querySelectorAll('.toast').forEach(function (toast) {
+            function hide() {
+                toast.classList.add('toast-hide');
+                setTimeout(function () { toast.remove(); }, 400);
+            }
+            toast.querySelector('.toast-close').addEventListener('click', hide);
+            setTimeout(hide, 6000);
+        });
+    </script>
 </body>
 </html>

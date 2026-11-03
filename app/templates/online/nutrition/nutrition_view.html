@@ -3,87 +3,116 @@
 {% block title %}Nutrition{% endblock %}
 
 {% block content %}
-    <div>
-        <h1>{{ day_label }}</h1>
-        <a href="{{ url_for('search.full_nutrition_view', date=prev_day.isoformat()) }}">← Previous day</a>
-        {% if can_go_forward %}
-            <a href="{{ url_for('search.full_nutrition_view', date=next_day.isoformat()) }}">Next day →</a>
-        {% endif %}
-        <h1>Daily Goals</h1>
-        <form method="post" action="{{ url_for('search.set_goals') }}">
-            <label for="calories_goal">Calories (kcal)</label>
-            <input type="number" id="calories_goal" name="calories_goal" min="1" max="9999" step="any" required
-                   value="{{ goals.calories_goal if goals else '' }}">
-            {% if goals %}
-                <p>{{ day_label }}: {{ total_calories|round|int }} / {{ goals.calories_goal|round|int }} kcal</p>
-                <progress value="{{ total_calories }}"
-                          max="{{ goals.calories_goal }}" aria-label="Calories progress"></progress>
-            {% else %}
-                <p>{{ day_label }}: {{ total_calories|round|int }} kcal</p>
+    <!-- Heading with the day being viewed + Previous / Next day buttons -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6 animate__animated animate__fadeInUp">
+        <div>
+            <p class="text-sm font-bold uppercase tracking-[0.18em] text-teal-light">Nutrition</p>
+            <h1 class="font-head text-3xl sm:text-4xl font-bold tracking-tight mt-1">{{ day_label }}</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ url_for('search.full_nutrition_view', date=prev_day.isoformat()) }}"
+               class="inline-flex items-center gap-1.5 rounded-full border border-white/15 hover:border-vibranium hover:shadow-glow px-4 py-2 text-sm font-semibold transition">← Previous day</a>
+            {% if can_go_forward %}
+                <a href="{{ url_for('search.full_nutrition_view', date=next_day.isoformat()) }}"
+                   class="inline-flex items-center gap-1.5 rounded-full border border-white/15 hover:border-vibranium hover:shadow-glow px-4 py-2 text-sm font-semibold transition">Next day →</a>
             {% endif %}
-            <br><br>
-
-            <label for="protein_goal">Protein (g)</label>
-            <input type="number" id="protein_goal" name="protein_goal" min="0" max="1000" step="any" required
-                   value="{{ goals.protein_goal if goals else '' }}">
-            {% if goals %}
-                <p>{{ day_label }}: {{ total_protein|round|int }} / {{ goals.protein_goal|round|int }} g</p>
-                <progress value="{{ total_protein }}"
-                          max="{{ goals.protein_goal }}" aria-label="Protein progress"></progress>
-            {% else %}
-                <p>{{ day_label }}: {{ total_protein|round|int }} g</p>
-            {% endif %}
-            <br><br>
-
-            <label for="carbs_goal">Carbs (g)</label>
-            <input type="number" id="carbs_goal" name="carbs_goal" min="0" max="1000" step="any" required
-                   value="{{ goals.carbs_goal if goals else '' }}">
-            {% if goals %}
-                <p>{{ day_label }}: {{ total_carbs|round|int }} / {{ goals.carbs_goal|round|int }} g</p>
-                <progress value="{{ total_carbs }}" max="{{ goals.carbs_goal }}" aria-label="Carbs progress"></progress>
-            {% else %}
-                <p>{{ day_label }}: {{ total_carbs|round|int }} g</p>
-            {% endif %}
-            <br><br>
-
-            <label for="fats_goal">Fats (g)</label>
-            <input type="number" id="fats_goal" name="fats_goal" min="0" max="500" step="any" required
-                   value="{{ goals.fats_goal if goals else '' }}">
-            {% if goals %}
-                <p>{{ day_label }}: {{ total_fats|round|int }} / {{ goals.fats_goal|round|int }} g</p>
-                <progress value="{{ total_fats }}" max="{{ goals.fats_goal }}" aria-label="Fats progress"></progress>
-            {% else %}
-                <p>{{ day_label }}: {{ total_fats|round|int }} g</p>
-            {% endif %}
-            <br><br>
-
-            <button type="submit">Save Goals</button>
-        </form>
+        </div>
     </div>
-    <br><br>
 
-    <div>
-        <h1>Logged Today</h1>
-        {% for meal, entries in meals.items() %}
-            <h2>{{ meal|capitalize }} - {{ total_meals[meal]|round|int }} kcal</h2>
-            {% for entry in entries %}
-                <p>Food Name: {{ entry.food_name }}</p>
-                <p>Food Weight: {{ entry.food_weight|round(1) }} g</p>
-                    <p>Calories: {{ entry.calories|round|int }} kcal</p>
-                <p>Protein: {{ entry.protein|round(1) }} g</p>
-                <p>Carbohydrates: {{ entry.carbs|round(1) }} g</p>
-                <p>Fats: {{ entry.fats|round(1) }} g</p>
-
-                <form method="POST" action="{{ url_for('search.delete_entry') }}">
-                    <input type="hidden" name="id" value="{{ entry.entry_id }}">
-                    <button type="submit" class="delete-btn">Delete</button>
-                </form>
-
-                <a href="{{ url_for('search.edit_entry', id=entry.entry_id) }}">Edit</a>
-                <br><br>
-            {% else %}
-                <p>Nothing logged for {{ meal }} yet.</p>
-            {% endfor %}
+    <!-- The day's totals for calories + the 3 macros. With goals: total / goal + a bar (red if over).
+    Without goals: just the total -->
+    {% set tiles = [
+        ('Calories', total_calories, goals.calories_goal if goals else none, 'kcal', 'bg-gold', 'border-gold'),
+        ('Protein', total_protein, goals.protein_goal if goals else none, 'g', 'bg-vibranium', 'border-vibranium'),
+        ('Carbs', total_carbs, goals.carbs_goal if goals else none, 'g', 'bg-teal', 'border-teal'),
+        ('Fats', total_fats, goals.fats_goal if goals else none, 'g', 'bg-mourning/70', 'border-mourning/70')
+    ] %}
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {% for label, now, goal, unit, bar, edge in tiles %}
+            <div class="rounded-2xl bg-talokan border border-white/5 border-t-4 {{ edge }} shadow-card p-4 sm:p-5 animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index0 * 0.08 }}s">
+                <p class="text-sm font-semibold text-muted">{{ label }}</p>
+                <p class="font-head text-2xl sm:text-3xl font-bold tabular-nums mt-1">
+                    {{ now|round|int }}<span class="text-sm sm:text-base font-medium text-muted"> {% if goal is not none %}/ {{ goal|round|int }} {% endif %}{{ unit }}</span>
+                </p>
+                {% if goal is not none %}
+                    {% set pct = [now|float / goal|float * 100, 100]|min if goal|float > 0 else 100 %}
+                    {% set over = now|float > goal|float %}
+                    <div class="h-2 rounded-full bg-white/10 overflow-hidden mt-3" role="progressbar"
+                         aria-label="{{ label }} progress" aria-valuenow="{{ now|round|int }}" aria-valuemax="{{ goal|round|int }}">
+                        <div class="bar-fill h-full rounded-full {% if over %}bg-danger{% else %}{{ bar }}{% endif %}" style="width: {{ pct }}%"></div>
+                    </div>
+                {% else %}
+                    <p class="text-xs text-muted mt-3">No goal set</p>
+                {% endif %}
+            </div>
         {% endfor %}
-    </div>
+    </section>
+
+    <!-- Every food logged this day, grouped by meal, each meal with its calorie subtotal -->
+    <section class="grid gap-5 mb-8">
+        {% for meal, entries in meals.items() %}
+            <div class="rounded-2xl bg-talokan border border-white/5 shadow-card overflow-hidden animate__animated animate__fadeInUp" style="animation-delay: {{ 0.15 + loop.index0 * 0.08 }}s">
+                <div class="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/5">
+                    <h2 class="font-head font-semibold text-lg">{{ meal|capitalize }}</h2>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-semibold text-gold tabular-nums">{{ total_meals[meal]|round|int }} kcal</span>
+                        <a href="{{ url_for('search.search_food_results') }}" class="text-sm font-bold text-teal-light hover:text-mourning transition" aria-label="Add food to {{ meal }}">+ Add</a>
+                    </div>
+                </div>
+
+                {% for entry in entries %}
+                    <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 {% if not loop.last %}border-b border-white/5{% endif %} hover:bg-white/[.03] transition">
+                        <div class="min-w-0 flex-1 basis-44">
+                            <p class="font-bold truncate">{{ entry.food_name }}</p>
+                            <p class="text-sm text-muted tabular-nums">{{ entry.food_weight|round(1) }} g</p>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 text-xs font-semibold tabular-nums">
+                            <span class="rounded-md bg-gold/15 text-gold px-2 py-1">{{ entry.calories|round|int }} kcal</span>
+                            <span class="rounded-md bg-vibranium/20 text-vib-light px-2 py-1">P {{ entry.protein|round(1) }}g</span>
+                            <span class="rounded-md bg-teal/15 text-teal-light px-2 py-1">C {{ entry.carbs|round(1) }}g</span>
+                            <span class="rounded-md bg-white/10 px-2 py-1">F {{ entry.fats|round(1) }}g</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ url_for('search.edit_entry', id=entry.entry_id) }}"
+                               class="rounded-lg border border-white/15 hover:border-vibranium hover:shadow-glow px-3 py-1.5 text-sm font-semibold transition">Edit</a>
+                            <form method="POST" action="{{ url_for('search.delete_entry') }}">
+                                <input type="hidden" name="id" value="{{ entry.entry_id }}">
+                                <button type="submit" class="delete-btn btn-danger rounded-lg border border-danger/70 hover:bg-danger px-3 py-1.5 text-sm font-semibold text-mourning transition">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="px-5 py-4 text-sm text-muted">Nothing logged for {{ meal }} yet.</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </section>
+
+    <!-- Daily goals form - submits to set_goals, which saves them and sends the user back here
+    (boxes are pre-filled with the current goals if they've been set before, and the box starts open if there are none) -->
+    <details id="goals" class="rounded-2xl bg-talokan border border-white/5 shadow-card p-5 sm:p-6 animate__animated animate__fadeIn" {% if not goals %}open{% endif %}>
+        <summary class="cursor-pointer flex items-center justify-between font-head font-semibold text-lg">
+            <span>{% if goals %}Edit your daily goals{% else %}Set your daily goals{% endif %}</span>
+            <span class="chev text-gold transition" aria-hidden="true">▾</span>
+        </summary>
+        <form method="post" action="{{ url_for('search.set_goals') }}" class="mt-5">
+            {% set fields = [
+                ('calories_goal', 'Calories (kcal)', 1, 9999, goals.calories_goal if goals else ''),
+                ('protein_goal', 'Protein (g)', 0, 1000, goals.protein_goal if goals else ''),
+                ('carbs_goal', 'Carbs (g)', 0, 1000, goals.carbs_goal if goals else ''),
+                ('fats_goal', 'Fats (g)', 0, 500, goals.fats_goal if goals else '')
+            ] %}
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {% for name, label, low, high, value in fields %}
+                    <div>
+                        <label for="{{ name }}" class="block text-sm font-semibold text-muted mb-1.5">{{ label }}</label>
+                        <input type="number" id="{{ name }}" name="{{ name }}" min="{{ low }}" max="{{ high }}" step="any" required
+                               value="{{ value }}"
+                               class="w-full rounded-xl bg-talokan-2 border border-white/10 px-4 py-3 text-mourning focus:outline-none focus:border-vibranium focus:ring-4 focus:ring-vibranium/25 transition">
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn-gold mt-5 rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-5 py-3 transition">Save goals</button>
+        </form>
+    </details>
 {% endblock %}

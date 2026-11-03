@@ -1,16 +1,32 @@
 {% extends "online/base.html" %}
 
-{% block title %}Food Search List{% endblock %}
+{% block title %}Results{% endblock %}
 
 {% block content %}
-    <h1>Food Search List</h1>
-    <div>
-        {% for item in foods %}
-            <p>
-                <a href="/routes/food_chosen?fdcId={{ item.fdcId }}">{{ item.description }}</a>
-            </p>
-        {% else %}
-            <p>No items found, please search for something else</p>
-        {% endfor %}
+    <div class="max-w-3xl mx-auto">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-6 animate__animated animate__fadeInUp">
+            <div>
+                <p class="text-sm font-bold uppercase tracking-[0.18em] text-teal-light">Add food</p>
+                <h1 class="font-head text-3xl font-bold tracking-tight mt-1">Pick your food</h1>
+            </div>
+            <a href="{{ url_for('search.search_food_results') }}" class="text-sm font-semibold text-gold hover:underline">New search</a>
+        </div>
+
+        <!-- Each result slides in from the right, one after the other -->
+        <div class="grid gap-2.5">
+            {% for item in foods %}
+                <a href="{{ url_for('search.food_chosen', fdcId=item.fdcId) }}"
+                   class="group flex items-center justify-between gap-4 rounded-xl bg-talokan border border-white/5 px-5 py-4 hover:border-vibranium/60 hover:shadow-glow hover:translate-x-1 transition animate__animated animate__fadeInRight"
+                   style="animation-delay: {{ [loop.index0 * 0.04, 0.6]|min }}s">
+                    <span class="font-semibold">{{ item.description }}</span>
+                    <span class="text-gold text-xl group-hover:translate-x-1 transition" aria-hidden="true">→</span>
+                </a>
+            {% else %}
+                <div class="rounded-2xl border-2 border-dashed border-white/10 px-6 py-12 text-center animate__animated animate__fadeIn">
+                    <p class="font-semibold">No items found, please search for something else.</p>
+                    <a href="{{ url_for('search.search_food_results') }}" class="btn-gold inline-flex mt-5 rounded-xl bg-gold hover:bg-gold-2 text-panther font-bold px-5 py-3 transition">Search again</a>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

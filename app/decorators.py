@@ -9,7 +9,7 @@ def login_required(func):
         # Checks the user is logged in before running the route
         user_id = session.get('user_id')
         if user_id is None:
-            flash('Please log in to access this page')
+            flash('Please log in to access this page', 'error')
             return redirect(url_for('auth.login'))
 
         # Runs original function

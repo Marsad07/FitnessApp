@@ -3,7 +3,7 @@ from .models.logged_entry_model import LoggedEntry
 from .models.nutrition_model import Nutrition
 from app import db
 from flask import Blueprint, request, render_template, session, flash, url_for
-from services.food_service import check_foodcache, get_food_options, fetch_food_details
+from services.food_service import check_foodcache, fetch_food_details
 from datetime import date, datetime, timedelta
 from app.decorators import login_required
 

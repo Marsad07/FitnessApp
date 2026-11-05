@@ -1,0 +1,4 @@
+/* Tailwind source file - the built version is app/static/css/tailwind.css (see tailwind.config.js for the command) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

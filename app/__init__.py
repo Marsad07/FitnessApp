@@ -1,5 +1,7 @@
 import os
 from datetime import date
+from urllib.parse import quote_plus
+import certifi
 from flask import Flask, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 
@@ -14,12 +16,32 @@ def create_app():
     app.register_blueprint(auth_bp)
 
     db_host = os.getenv('DB_HOST')
+    db_port = os.getenv('DB_PORT', '3306')      # MySQL's usual port locally, TiDB Cloud uses 4000
     db_user = os.getenv('DB_USER')
     db_password = os.getenv('DB_PASSWORD')
     db_name = os.getenv('DB_NAME')
     secret_key = os.getenv('SECRET_KEY')
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
+    # quote_plus makes the user/password safe to put in a URL (generated passwords can contain symbols like @ or /)
+    app.config['SQLALCHEMY_DATABASE_URI'] = (
+        f"mysql+mysqlconnector://{quote_plus(db_user or '')}:{quote_plus(db_password or '')}"
+        f"@{db_host}:{db_port}/{db_name}"
+    )
+
+    # pool_pre_ping checks a connection still works before using it, and pool_recycle swaps connections every
+    # 5 minutes - the live database closes idle connections, which would otherwise crash the first request after a quiet spell
+    engine_options = {"pool_pre_ping": True, "pool_recycle": 300}
+
+    # TiDB Cloud only accepts encrypted (TLS) connections, so when DB_SSL=true the connection is encrypted and the
+    # server's certificate is checked against certifi's list of trusted certificates. Local MySQL doesn't need it
+    if os.getenv('DB_SSL', 'false').lower() == 'true':
+        engine_options["connect_args"] = {
+            "ssl_ca": certifi.where(),
+            "ssl_verify_cert": True,
+            "ssl_verify_identity": True,
+        }
+
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
     app.config['SECRET_KEY'] = secret_key
     db.init_app(app)
 

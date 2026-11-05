@@ -3,6 +3,8 @@
 A calorie and macro tracker built with Flask. Search real foods from the USDA FoodData Central database, 
 log what you eat by the gram, and see your calories, protein, carbs and fats add up against your own daily goals.
 
+**Live Demo: https://griotfitness.onrender.com/** 
+
 ![Dashboard](screenshots/dashboard.png)
 
 ## Features
@@ -176,5 +178,5 @@ that stuck with me most.
 
 ## What's next
 - Automated tests with pytest
-- Deploying a live version
+- Adding new features to improve apps functionality
 - Logging food to past days, and a 7-day calorie history chart
